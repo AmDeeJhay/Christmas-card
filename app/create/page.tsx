@@ -1,0 +1,42 @@
+"use client"
+import React, { useState } from 'react'
+import VideoUploader from '../../components/VideoUploader'
+import VideoRecorder from '../../components/VideoRecorder'
+import MessageInput from '../../components/MessageInput'
+import { useRouter } from 'next/navigation'
+
+export default function CreatePage() {
+  const [videoDataUrl, setVideoDataUrl] = useState<string | null>(null)
+  const [message, setMessage] = useState('')
+  const router = useRouter()
+
+  const onContinue = () => {
+    if (!videoDataUrl) return alert('Please add a video before continuing')
+    const draft = { videoDataUrl, message }
+    localStorage.setItem('cardDraft', JSON.stringify(draft))
+    router.push('/preview')
+  }
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-semibold">Create your card</h2>
+
+      <div className="grid gap-4">
+        <VideoUploader onChange={(d) => setVideoDataUrl(d)} />
+        <div className="divider text-center text-slate-400">or</div>
+        <VideoRecorder onRecorded={(d) => setVideoDataUrl(d)} />
+      </div>
+
+      <MessageInput value={message} onChange={setMessage} />
+
+      <div className="flex justify-end">
+        <button
+          onClick={onContinue}
+          className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg"
+        >
+          Continue to Preview
+        </button>
+      </div>
+    </div>
+  )
+}
