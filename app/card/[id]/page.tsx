@@ -1,8 +1,8 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import CardPreview from '../../../../components/CardPreview'
-import ShareActions from '../../../../components/ShareActions'
+import CardPreview from '../../../components/CardPreview'
+import ShareActions from '../../../components/ShareActions'
 
 export default function PublicCardPage() {
   const params = useParams() as { id?: string }
