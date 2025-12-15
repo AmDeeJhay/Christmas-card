@@ -30,7 +30,7 @@ export default function RootLayout({
         <meta property="og:image" content="/og-image.png" />{" "}
         {/* optional social preview */}
       </Head>
-      <body className="bg-gradient-to-b from-slate-900 via-slate-700 to-slate-900 text-slate-100 min-h-screen">
+      <body className="bg-linear-to-b from-slate-900 via-slate-700 to-slate-900 text-slate-100 min-h-screen">
         <div className="app">{children}</div>
       </body>
     </html>
