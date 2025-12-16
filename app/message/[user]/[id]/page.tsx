@@ -55,7 +55,7 @@ export default function Page() {
             {/* Button */}
             <Link
               href={"/message/user/883838/signin"}
-              className="bg-white transition-class border mt-auto border-white text-black font-medium rounded-full py-3 px-6 w-full md:w-auto hover:bg-transparent hover:text-white hover:border-white transition-colors text-sm md:text-base"
+              className="bg-white transition-class border mt-auto border-white text-black font-medium rounded-full py-4 px-6 w-full md:w-auto hover:bg-transparent hover:text-white hover:border-white transition-colors text-sm md:text-base"
               style={{
                 boxShadow: "0 -4px 50px #ff2b2b58, 0 4px 50px #ff2b2b58",
               }}

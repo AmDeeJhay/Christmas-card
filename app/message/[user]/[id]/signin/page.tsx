@@ -61,7 +61,7 @@ export default function SignInPage() {
           {/* Button */}
           <Link
             href={"/message/user/883838/view-message"}
-            className="bg-white border transition-class border-white text-black font-medium rounded-full py-3 px-6 w-full md:w-auto hover:bg-transparent hover:text-white hover:border-white transition-colors text-sm md:text-base"
+            className="bg-white border transition-class border-white text-black font-medium rounded-full py-4 px-6 w-full md:w-auto hover:bg-transparent hover:text-white hover:border-white transition-colors text-sm md:text-base"
           >
             Open My Message
           </Link>

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import PageTransition from "@/components/framer-motion/page-transition";
+import Envelope from "@/components/framer-motion/envelope-reveal";
 
 export default function ViewPage() {
   return (
@@ -20,7 +21,7 @@ export default function ViewPage() {
         </div>
 
         {/* Tree banner at the top */}
-        <div className="w-full relative h-36 z-10">
+        <div className="w-full relative h-36 z-[1000]">
           <Image
             src="/images/xmas-tree-top.png"
             alt="Christmas tree"
@@ -39,14 +40,24 @@ export default function ViewPage() {
           </h1>
 
           {/* Envelope image */}
-          <div className="relative cursor-pointer w-48 h-32 md:w-64 md:h-44 mb-6">
+          {/* <div className="relative cursor-pointer w-48 h-32 md:w-64 md:h-44 mb-6">
             <Image
               src="/images/envelope.png"
               alt="Envelope"
               fill
               className="object-contain"
             />
-          </div>
+          </div> */}
+          <Envelope
+            message="Hey Dora
+            This little digital note comes with a sprinkle of holiday magic just for you. 🌟
+
+May your Christmas be filled with laughter louder than the office printer, treats sweeter than our coffee breaks, and all the joy your heart can hold. 🎅❄️
+
+P.S. Working with you this year has been the best gift of all… just saying. 😉
+
+Merry Christmas & Happy New Year!” 🎉💌"
+          />
         </main>
 
         {/* Footer */}

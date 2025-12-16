@@ -19,7 +19,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.5, ease: "easeInOut" }}
-        className="h-full"
+        className="h-full w-full"
       >
         {children}
       </motion.div>
