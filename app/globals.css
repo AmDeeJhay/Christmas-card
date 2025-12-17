@@ -1,24 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
 body {
   background: var(--background);
@@ -49,23 +33,28 @@ html, body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #220000;     /* matches your background */
+  /* background: #220000;     matches your background */
+  background:transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #440000; /* slightly lighter/darker for contrast */
+  /* background-color: #440000; slightly lighter/darker for contrast */
+  background-color:transparent;
   border-radius: 4px;
-  border: 2px solid #220000; /* creates spacing effect */
+  /* border: 2px solid #220000; creates spacing effect */
+
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #380000; /* subtle hover effect */
+  /* background-color: #380000; subtle hover effect */
+  background-color:transparent;
 }
 
 /* For Firefox */
 * {
   scrollbar-width: thin;              /* makes it thin */
-  scrollbar-color: #440000 #220000;   /* thumb color + track color */
+  /* scrollbar-color: #440000 #220000;   thumb color + track color */
+  scrollbar-color: transparent transparent;
 }
 
 /* For legacy IE (optional, rarely needed now) */
@@ -77,6 +66,7 @@ html {
 
 body {
   @apply bg-[#220000] text-[#ffffff];
+  /* background: #4B0600; */
 }
 
 /* App.css */
@@ -93,6 +83,10 @@ body {
 h1, h2, .holiday-title {
   font-family: 'Mountains of Christmas', cursive;
 }
+.great-vibes {
+  font-family: "Great Vibes", cursive;
+  font-style: normal;
+}
 
 
 .card-bg {
@@ -104,4 +98,69 @@ h1, h2, .holiday-title {
 }
 button{
   cursor:pointer;
+}
+
+
+
+/*------------------------Envelope CSS -------------------------*/
+.envelope {
+  position: relative;
+  width: 220px;
+  height: 130px;
+  margin: 80px auto;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.flap {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 65px;
+  background: linear-gradient(to top, #E47171, #FFABAB, #FFC7C7);
+  transform-origin: top;
+  backface-visibility: hidden;
+}
+
+.body {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 65px;
+  /* background: linear-gradient(to bottom, #FFC7C7, #FFABAB, #E47171); */
+  background-color: transparent;
+}
+
+.sheet-preview {
+  position: absolute;
+  top: 20px;
+  left: 10px;
+  width: 200px;
+  height: 100px;
+  /* background: #fff; */
+    background-color: transparent;
+  z-index: 1;
+  border-radius: 4px;
+}
+
+.sheet-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  /* background: #fff; */
+    background-color: #fff;
+ 
+  z-index: 999;
+  overflow-y: scroll;
+  padding: 40px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.sheet-content {
+  max-width: 600px;
+  margin: 0 auto;
+  font-size: 1.2rem;
+  line-height: 1.6;
 }
