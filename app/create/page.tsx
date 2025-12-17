@@ -13,7 +13,13 @@ export default function CreatePage() {
   const onContinue = () => {
     if (!videoDataUrl) return alert('Please add a video before continuing')
     const draft = { videoDataUrl, message }
-    localStorage.setItem('cardDraft', JSON.stringify(draft))
+    const serialized = JSON.stringify(draft)
+    try {
+      localStorage.setItem('cardDraft', serialized)
+      sessionStorage.setItem('cardDraft', serialized)
+    } catch (e) {
+      console.warn('Could not persist draft to storage', e)
+    }
     router.push('/preview')
   }
 
