@@ -1,7 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import PageTransition from "@/components/framer-motion/page-transition";
-import Envelope from "@/components/framer-motion/envelope-reveal";
+import EnvelopeSequence from "@/components/framer-motion/envelope-reveal";
+
+const mockMessage = `Hey Dora
+
+            This little digital note comes with a sprinkle of holiday magic just for you. 🌟
+
+May your Christmas be filled with laughter louder than the office printer, treats sweeter than our coffee breaks, and all the joy your heart can hold. 🎅❄️
+
+P.S. Working with you this year has been the best gift of all… just saying. 😉
+
+Merry Christmas & Happy New Year!” 🎉💌`;
 
 export default function ViewPage() {
   return (
@@ -39,25 +49,11 @@ export default function ViewPage() {
             Opening your message
           </h1>
 
-          {/* Envelope image */}
-          {/* <div className="relative cursor-pointer w-48 h-32 md:w-64 md:h-44 mb-6">
-            <Image
-              src="/images/envelope.png"
-              alt="Envelope"
-              fill
-              className="object-contain"
-            />
-          </div> */}
-          <Envelope
-            message="Hey Dora
-            This little digital note comes with a sprinkle of holiday magic just for you. 🌟
-
-May your Christmas be filled with laughter louder than the office printer, treats sweeter than our coffee breaks, and all the joy your heart can hold. 🎅❄️
-
-P.S. Working with you this year has been the best gift of all… just saying. 😉
-
-Merry Christmas & Happy New Year!” 🎉💌"
+         
+          <EnvelopeSequence
+            message={mockMessage}
           />
+         
         </main>
 
         {/* Footer */}

@@ -1,58 +1,51 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import MessageSheet from "./MessageSheet";
 
-const Envelope = ({ message }: { message: string }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [showSheet, setShowSheet] = useState(false);
+const frames = [
+  "/images/envelope.png", 
+  "/images/step2.png",
+  "/images/step3.png", 
+  "/images/step4.png", 
+  "/images/step5.png", 
+];
+
+const FRAME_DURATION = 600; 
+const FADE_DURATION = 0.6; 
+
+const EnvelopeSequence = ({ message }: { message: string }) => {
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    // Start opening
-    const openTimer = setTimeout(() => {
-      setIsOpen(true);
-    }, 800); // wait a bit before opening
+    if (index < frames.length) {
+      const t = setTimeout(() => setIndex((i) => i + 1), FRAME_DURATION);
+      return () => clearTimeout(t);
+    }
+  }, [index]);
 
-    const sheetTimer = setTimeout(() => {
-      setShowSheet(true);
-    }, 2000); // show sheet after envelope has opened
-
-    return () => {
-      clearTimeout(openTimer);
-      clearTimeout(sheetTimer);
-    };
-  }, []);
+  const showSheet = index >= frames.length;
 
   return (
     <>
-      <div className="flex items-center justify-center h-full w-full">
-        <AnimatePresence mode="wait">
-          {!isOpen && (
+      <div className="relative flex items-center justify-center w-full h-full">
+        <div className="relative w-64 h-40 sm:h-48 md:h-56">
+          {frames.map((src, i) => (
             <motion.img
-              key="closed-envelope"
-              src="/images/envelope.png"
-              alt="Closed Envelope"
-              className="w-64 h-auto"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.1 }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
+              key={src}
+              src={src}
+              alt={`envelope-frame-${i}`}
+              className="absolute inset-0 w-full h-full object-contain select-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: index === i ? 1 : 0 }}
+              transition={{
+                duration: FADE_DURATION,
+                ease: "easeInOut",
+              }}
+              draggable={false}
             />
-          )}
-
-          {isOpen && !showSheet && (
-            <motion.img
-              key="open-envelope"
-              src="/images/envelop-open.png"
-              alt="Open Envelope"
-              className="w-64 h-auto"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.05 }}
-              transition={{ duration: 1, ease: "easeInOut" }}
-            />
-          )}
-        </AnimatePresence>
+          ))}
+        </div>
       </div>
 
       {showSheet && <MessageSheet message={message} />}
@@ -60,4 +53,4 @@ const Envelope = ({ message }: { message: string }) => {
   );
 };
 
-export default Envelope;
+export default EnvelopeSequence;

@@ -150,9 +150,10 @@ button{
   width: 100vw;
   height: 100vh;
   /* background: #fff; */
-    background-color: transparent;
+    background-color: #fff;
+ 
   z-index: 999;
-  overflow-y: auto;
+  overflow-y: scroll;
   padding: 40px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
