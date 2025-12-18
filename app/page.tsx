@@ -28,9 +28,12 @@ export default function HomePage() {
           {/* Buttons */}
           <div className="px-6 pb-10 md:px-12 md:pb-10 flex flex-col gap-4 w-full max-w-md">
             {/* Primary button */}
-            <button className="bg-white border border-white flex items-center justify-center text-center text-[#000000] font-normal rounded-full py-4 px-6 w-full hover:border-white hover:bg-transparent hover:text-white transition-class text-sm md:text-base">
+            <Link
+              href="/create/lock"
+              className="bg-white border border-white flex items-center justify-center text-center text-[#000000] font-normal rounded-full py-4 px-6 w-full hover:border-white hover:bg-transparent hover:text-white transition-class text-sm md:text-base"
+            >
               Send a Message
-            </button>
+            </Link>
 
             {/* Secondary button */}
             <Link
