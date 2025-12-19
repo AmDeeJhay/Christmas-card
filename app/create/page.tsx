@@ -22,7 +22,8 @@ export default function CreatePage() {
       console.warn('Could not persist encryption info', e)
     }
 
-    router.push('/create/message')
+    // route to the dynamic lock path so URL shows the id
+    router.push('/create/message') 
   }
 
   return (

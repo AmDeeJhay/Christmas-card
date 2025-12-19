@@ -1,13 +1,15 @@
 "use client"
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
+import Image from 'next/image';
 
 const PasswordLockPage: React.FC = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('')
   const router = useRouter()
+  const params = useParams()
 
   const handleSubmit = () => {
     const payload = { firstName, lastName, email }
@@ -17,21 +19,22 @@ const PasswordLockPage: React.FC = () => {
     } catch (e) {
       console.warn('Could not persist encryption info', e)
     }
-    router.push('/create/message')
+    const id = params?.id || 'lock'
+    router.push(`/create/${id}/message`)
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b relative overflow-hidden flex flex-col">
+    <div className="min-h-full w-screen -mt-9 bg-gradient-to-b relative overflow-hidden flex flex-col px-0">
       {/* Christmas garland decoration at top */}
-      <div className="w-full relative h-32 z-10 flex-shrink-0">
+      <div className="w-full relative h-32 flex-shrink-0">
         <div className="absolute inset-0 flex items-start justify-center overflow-hidden">
           {/* Green garland branches */}
-          
+              <img src="/images/Garland.svg" alt="Garland" className="w-full h-full object-cover mix-blend-multiply opacity-" />
         </div>
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-2 py-8 z-10">
+      <div className="flex-1 flex flex-col items-center justify-center py-8 z-10 px-6">
         {/* Title */}
         <h1 
           className="text-4xl md:text-5xl text-center mb-12 text-yellow-400 drop-shadow-lg"
@@ -41,7 +44,7 @@ const PasswordLockPage: React.FC = () => {
         </h1>
 
         {/* Form */}
-        <div className="w-full max-w-sm space-y-4">
+        <div className="w-full max-w-none space-y-4">
           {/* First Name */}
           <div className="w-full">
             <label className="text-white text-xs mb-1 block text-left pl-1">
@@ -52,7 +55,7 @@ const PasswordLockPage: React.FC = () => {
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="Enter a password to lock this message"
-              className="w-full rounded-full border-2 border-red-600 bg-red-900/40 px-5 py-3.5 text-white placeholder:text-red-300/50 placeholder:text-xs focus:outline-none focus:border-red-500 transition-colors"
+              className="block w-full rounded-full border-2 border-red-600 bg-red-900/40 px-4 py-3 text-white placeholder:text-red-300/50 placeholder:text-xs focus:outline-none focus:border-red-500 transition-colors"
             />
           </div>
 
@@ -66,7 +69,7 @@ const PasswordLockPage: React.FC = () => {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Enter a password to lock this message"
-              className="w-full rounded-full border-2 border-red-600 bg-red-900/40 px-5 py-3.5 text-white placeholder:text-red-300/50 placeholder:text-xs focus:outline-none focus:border-red-500 transition-colors"
+              className="block w-full rounded-full border-2 border-red-600 bg-red-900/40 px-4 py-3 text-white placeholder:text-red-300/50 placeholder:text-xs focus:outline-none focus:border-red-500 transition-colors"
             />
           </div>
 
@@ -78,7 +81,7 @@ const PasswordLockPage: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Recipient email"
-              className="w-full rounded-full border-2 border-red-600 bg-red-900/40 px-5 py-3.5 text-white placeholder:text-red-300/50 placeholder:text-xs focus:outline-none focus:border-red-500 transition-colors"
+              className="block w-full rounded-full border-2 border-red-600 bg-red-900/40 px-4 py-3 text-white placeholder:text-red-300/50 placeholder:text-xs focus:outline-none focus:border-red-500 transition-colors"
             />
           </div>
 
@@ -93,7 +96,7 @@ const PasswordLockPage: React.FC = () => {
       </div>
 
       {/* Footer */}
-      <footer className="py-6 text-center text-sm text-white/70 z-10 flex-shrink-0">
+      <footer className="text-center text-sm -mt-3 text-white/70 z-10 flex-shrink-0">
         powered by Applift
       </footer>
 
