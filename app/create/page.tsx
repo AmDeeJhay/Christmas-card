@@ -26,9 +26,9 @@ const PasswordLockPage: React.FC = () => {
   const isFormValid = firstName.trim() !== '' && lastName.trim() !== '' && email.trim() !== ''
 
   return (
-    <div className="min-h-full w-screen -mt-9 bg-gradient-to-b relative overflow-hidden flex flex-col px-0">
+    <div className="min-h-screen w-screen -mt-9 bg-gradient-to-b relative overflow-hidden flex flex-col px-0">
       {/* Christmas garland decoration at top */}
-      <div className="w-full relative h-32 flex-shrink-0">
+      <div className="w-full relative h-32 top-5 flex-shrink-0">
         <img
           src="/images/Garland.svg"
           alt="Garland"
