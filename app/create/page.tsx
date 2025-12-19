@@ -27,10 +27,11 @@ const PasswordLockPage: React.FC = () => {
     <div className="min-h-full w-screen -mt-9 bg-gradient-to-b relative overflow-hidden flex flex-col px-0">
       {/* Christmas garland decoration at top */}
       <div className="w-full relative h-32 flex-shrink-0">
-        <div className="absolute inset-0 flex items-start justify-center overflow-hidden">
-          {/* Green garland branches */}
-              <img src="/images/Garland.svg" alt="Garland" className="w-full h-full object-cover mix-blend-multiply opacity-" />
-        </div>
+        <img
+          src="/images/Garland.svg"
+          alt="Garland"
+          className="w-full h-full object-cover"
+        />
       </div>
 
       {/* Main content */}
