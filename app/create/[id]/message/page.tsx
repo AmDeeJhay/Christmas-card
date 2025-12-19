@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
 
 const MessagePage: React.FC = () => {
   const router = useRouter();
@@ -38,11 +39,13 @@ const MessagePage: React.FC = () => {
     icon,
     active,
     onClick,
+    iconSize = 32,
   }: {
     label: string;
     icon: string;
     active: boolean;
     onClick: () => void;
+    iconSize?: number;
   }) => {
   const [pressed, setPressed] = React.useState(false)
 
@@ -99,7 +102,7 @@ const MessagePage: React.FC = () => {
               zIndex: 0,
             }}
           />
-          <img src={icon} alt="" className="relative z-10 w-10 h-10 object-contain" style={{ filter: 'brightness(1.25)', transition: 'filter 140ms ease' }} />
+          <img src={icon} alt="" className="relative z-10 object-contain" style={{ width: iconSize, height: iconSize, filter: 'brightness(1.25)', transition: 'filter 140ms ease' }} />
         </div>
       </button>
       <span className={`text-[10px] text-center whitespace-nowrap mt-2 max-w-[88px] ${active ? 'text-white' : 'text-white'}`}>{label}</span>
@@ -124,9 +127,9 @@ const MessagePage: React.FC = () => {
         <div
           className={`w-full rounded-2xl border-2 ${
             mode === "text"
-              ? "border-red-600"
-              : "border-dashed border-red-500"
-          } bg-red-900/40 p-4 mt-6`}
+              ? "border-[#FF0F0F]"
+              : "border-dashed border-[#FF0F0F]"
+          } bg-[#501F1F] p-4 mt-6`}
         >
           {mode === "text" ? (
             <textarea
@@ -138,9 +141,9 @@ const MessagePage: React.FC = () => {
             />
           ) : (
             <label className="flex flex-col items-center justify-center gap-3 py-10 cursor-pointer">
-              <div className="text-red-300">⬆</div>
-              <p className="text-xs text-red-300">
-                MP4, MOV, or WebM • Up to 2 minutes
+              <Image src="/images/upload.svg" alt="Upload Icon" width={48} height={48} className="text-[#804040]" />
+              <p className="text-xs text-[#804040] items-center text-center max-w-xs">
+                MP4, MOV, or WebM • Up <br /> to 2 minutes
               </p>
               <input
                 type="file"
@@ -148,7 +151,7 @@ const MessagePage: React.FC = () => {
                 className="hidden"
                 onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
               />
-              <span className="bg-red-600 text-white px-6 py-2 rounded-full text-sm">
+              <span className="bg-[#FF0F0F] text-white px-6 py-2 rounded-full text-sm">
                 Browse files
               </span>
             </label>
@@ -156,7 +159,7 @@ const MessagePage: React.FC = () => {
         </div>
 
         {/* Toggle */}
-        <div className="flex w-full bg-red-950/60 rounded-full p-1 mt-4">
+        <div className="flex w-full bg-red-950/60 rounded-full p-1.5 mt-4">
           <button
             onClick={() => setMode("text")}
             className={`flex-1 py-2 rounded-full text-sm transition ${
@@ -186,18 +189,21 @@ const MessagePage: React.FC = () => {
             active={theme === "crimson"}
             icon="/images/santa-head.svg"
             onClick={() => setTheme("crimson")}
+            iconSize={52}
           />
           <ThemeButton
             label="Evergreen Magic"
             active={theme === "evergreen"}
             icon="/images/snow-scooter.svg"
             onClick={() => setTheme("evergreen")}
+            iconSize={52}
           />
           <ThemeButton
             label="Midnight Noel"
             active={theme === "midnight"}
             icon="/images/midnight-noel.svg"
             onClick={() => setTheme("midnight")}
+            iconSize={48}
           />
         </div>
 
