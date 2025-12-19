@@ -30,8 +30,8 @@ const MessagePage: React.FC = () => {
       console.warn("Could not persist message info", e);
     }
 
-    const id = params?.id || "preview";
-    router.push(`/create/${id}/preview`);
+    // route to secure message review page
+    router.push('/create/secure-message');
   };
 
   const ThemeButton = ({
