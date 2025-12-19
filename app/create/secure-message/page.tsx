@@ -38,6 +38,8 @@ const SecureMessagePage: React.FC = () => {
     router.push("/create/newsletter");
   };
 
+  const isNextEnabled = password.trim() !== '' || hint.trim() !== ''
+
   return (
     <div className="min-h-screen w-screen bg-[#220000] relative overflow-hidden flex flex-col">
       {/* Main Content */}
@@ -90,7 +92,9 @@ const SecureMessagePage: React.FC = () => {
         {/* Next Button */}
         <button
           onClick={handleNext}
-          className="w-full bg-white text-gray-900 rounded-full py-4 font-medium shadow-lg active:scale-95 transition mb-4"
+          disabled={!isNextEnabled}
+          aria-disabled={!isNextEnabled}
+          className={`w-full rounded-full py-4 font-medium shadow-lg mb-4 transition ${isNextEnabled ? 'bg-white text-gray-900 active:scale-95' : 'bg-white/30 text-gray-400 cursor-not-allowed'}`}
         >
           Next
         </button>

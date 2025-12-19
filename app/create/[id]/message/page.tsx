@@ -34,6 +34,8 @@ const MessagePage: React.FC = () => {
     router.push('/create/secure-message');
   };
 
+  const isValid = mode === 'text' ? message.trim().length > 0 : !!videoFile
+
   const ThemeButton = ({
     label,
     icon,
@@ -210,7 +212,9 @@ const MessagePage: React.FC = () => {
         {/* Submit */}
         <button
           onClick={handleSubmit}
-          className="w-full bg-white text-gray-900 rounded-full py-4 mt-8 font-medium shadow-lg active:scale-95 transition"
+          disabled={!isValid}
+          aria-disabled={!isValid}
+          className={`w-full rounded-full py-4 mt-8 font-medium shadow-lg transition ${isValid ? 'bg-white text-gray-900 active:scale-95' : 'bg-white/30 text-gray-400 cursor-not-allowed'}`}
         >
           Submit
         </button>

@@ -23,6 +23,8 @@ const PasswordLockPage: React.FC = () => {
     router.push(`/create/${id}/message`)
   };
 
+  const isFormValid = firstName.trim() !== '' && lastName.trim() !== '' && email.trim() !== ''
+
   return (
     <div className="min-h-full w-screen -mt-9 bg-gradient-to-b relative overflow-hidden flex flex-col px-0">
       {/* Christmas garland decoration at top */}
@@ -89,7 +91,9 @@ const PasswordLockPage: React.FC = () => {
           {/* Continue Button */}
           <button
             onClick={handleSubmit}
-            className="w-full bg-white text-gray-900 font-medium rounded-full py-4 px-6 hover:bg-gray-100 active:scale-95 transition-all duration-200 shadow-lg mt-6"
+            disabled={!isFormValid}
+            aria-disabled={!isFormValid}
+            className={`w-full font-medium rounded-full py-4 px-6 mt-6 transition-all duration-200 shadow-lg ${isFormValid ? 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95' : 'bg-white/30 text-gray-400 cursor-not-allowed'}`}
           >
             Continue
           </button>
