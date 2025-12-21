@@ -93,7 +93,7 @@ const PasswordLockPage: React.FC = () => {
             onClick={handleSubmit}
             disabled={!isFormValid}
             aria-disabled={!isFormValid}
-            className={`w-full font-medium rounded-full py-4 px-6 mt-6 transition-all duration-200 shadow-lg ${isFormValid ? 'bg-white text-gray-900 hover:bg-gray-100 active:scale-95' : 'bg-white/30 text-gray-400 cursor-not-allowed'}`}
+            className={`w-full font-medium rounded-full py-4 px-6 mt-6 transition-all duration-200 ${isFormValid ? "bg-white text-gray-900 hover:shadow-[0_8px_24px_rgba(243,9,9,0.25)] focus:outline-none focus:shadow-[0_10px_28px_rgba(243,9,9,0.30)] active:shadow-[0_6px_18px_rgba(243,9,9,0.40)] active:scale-95" : 'bg-white/30 text-gray-400 cursor-not-allowed'}`}
           >
             Continue
           </button>

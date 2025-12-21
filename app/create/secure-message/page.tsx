@@ -22,7 +22,7 @@ const SecureMessagePage: React.FC = () => {
       console.warn("Could not persist secure message info", e);
     }
 
-    router.push("/create/preview");
+    router.push("/create/newsletter");
   };
 
   const handleSkip = () => {

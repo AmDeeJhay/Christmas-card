@@ -19,7 +19,7 @@ const NewsletterPage: React.FC = () => {
       console.warn("Could not persist notification email", e);
     }
 
-    router.push("/create/summary");
+    router.push("/create/overview");
   };
 
   const handleSkip = () => {
@@ -32,7 +32,7 @@ const NewsletterPage: React.FC = () => {
       console.warn("Could not persist skip notification", e);
     }
 
-    router.push("/create/summary");
+    router.push("/create/overview");
   };
 
   return (
@@ -81,7 +81,7 @@ const NewsletterPage: React.FC = () => {
         {/* Submit */}
         <button
           onClick={handleSubmit}
-          className="w-full bg-white text-gray-900 rounded-full py-4 font-medium shadow-lg active:scale-95 transition mb-4"
+          className="w-full bg-white text-gray-900 rounded-full py-4 font-medium transition mb-4 focus:outline-none hover:shadow-[0_8px_24px_rgba(243,9,9,0.25)] focus:shadow-[0_10px_28px_rgba(243,9,9,0.30)] active:shadow-[0_6px_18px_rgba(243,9,9,0.40)] active:scale-95"
         >
           Submit
         </button>
@@ -89,7 +89,7 @@ const NewsletterPage: React.FC = () => {
         {/* Skip */}
         <button
           onClick={handleSkip}
-          className="w-full border-[1.5px] hover:bg-white hover:text-[#0A0A0A] border-white text-white rounded-full py-3 text-sm active:scale-95 transition"
+          className="w-full border-[1.5px] hover:bg-white hover:text-[#0A0A0A] border-white text-white rounded-full py-3 text-sm transition focus:outline-none hover:shadow-[0_8px_24px_rgba(243,9,9,0.25)] focus:shadow-[0_10px_28px_rgba(243,9,9,0.30)] active:shadow-[0_6px_18px_rgba(243,9,9,0.40)] active:scale-95"
         >
           Skip for now
         </button>
