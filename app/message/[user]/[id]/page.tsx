@@ -25,9 +25,7 @@ export default function Page() {
               src="/images/xmas-tree-top.png"
               alt="Christmas tree"
               fill
-              layout="fill"
-              objectFit="contain"
-              objectPosition="top"
+              className="object-cover object-bottom"
               priority
             />
           </div>

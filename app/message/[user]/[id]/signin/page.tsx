@@ -8,14 +8,14 @@ export default function SignInPage() {
       <div className="relative h-full flex flex-col items-center justify-center overflow-hidden">
         {/* Tree banner at the top */}
         <div className="w-full relative h-36 z-10">
-          <Image
-            src="/images/xmas-tree-top.png"
-            alt="Christmas tree"
-            fill
-            className="object-contain object-top"
-            priority
-          />
-        </div>
+                   <Image
+                     src="/images/xmas-tree-top.png"
+                     alt="Christmas tree"
+                     fill
+                     className="object-cover object-bottom"
+                     priority
+                   />
+                 </div>
 
         {/* Main content */}
         <main className="flex flex-col items-center text-center px-6 max-w-2xl z-10 w-full">
