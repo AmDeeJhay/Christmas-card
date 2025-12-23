@@ -125,7 +125,7 @@ export const checkMessageExists = async (
   return response.data;
 };
 
-// Additional endpoints (based on user description, placeholders until full docs available)
+
 export const createMessageMagicLink = async (
   slug: string,
   token: string

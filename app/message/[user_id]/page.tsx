@@ -35,7 +35,7 @@ export default function Page() {
             <h1 className="text-4xl md:text-5xl font-normal text-[#FFC758] mb-4">
               You’ve Got a Message!
             </h1>
-            <p className="text-base md:text-lg text-[#FFFFFF] mb-6">
+            <p className="text-base text-[#FFFFFF] mb-6">
               Someone special has sent you a note or video. Click below to open
               and see your holiday surprise!
             </p>
@@ -52,8 +52,8 @@ export default function Page() {
 
             {/* Button */}
             <Link
-              href={"/message/user/883838/signin"}
-              className="bg-white transition-class border mt-auto border-white text-black font-medium rounded-full py-4 px-6 w-full md:w-auto hover:bg-transparent hover:text-white hover:border-white transition-colors text-sm md:text-base"
+              href={"/message/signin"}
+              className="bg-white transition-class border mt-auto border-white text-black font-medium rounded-full py-4 px-6 w-full hover:bg-transparent hover:text-white hover:border-white transition-colors text-sm md:text-base"
               style={{
                 boxShadow: "0 -4px 50px #ff2b2b58, 0 4px 50px #ff2b2b58",
               }}

@@ -17,8 +17,8 @@ P.S. Working with you this year has been the best gift of all… just saying. �
 Merry Christmas & Happy New Year!” 🎉💌`;
 
 export default function ViewPage() {
-  const params = useParams() as { id?: string };
-  const slug = params?.id;
+  const params = useParams() as { user_id?: string };
+  const slug = params?.user_id;
 
   const [message, setMessage] = useState(() => {
     if (typeof window !== "undefined" && slug) {
@@ -31,17 +31,6 @@ export default function ViewPage() {
     return mockMessage;
   });
 
-  useEffect(() => {
-    if (slug) {
-      const stored = localStorage.getItem(`message:${slug}`);
-      if (stored) {
-        const data = JSON.parse(stored);
-        setMessage(data.text || data.message || mockMessage);
-      } else {
-        setMessage(mockMessage);
-      }
-    }
-  }, [slug]);
 
   return (
     <PageTransition>

@@ -12,8 +12,8 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const params = useParams() as { id?: string };
-  const slug = params?.id;
+  const params = useParams() as { user_id?: string };
+  const slug = params?.user_id;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +24,7 @@ export default function SignInPage() {
       const messageData = await openMessage(slug, password);
   
       localStorage.setItem(`message:${slug}`, JSON.stringify(messageData));
-      router.push(`/message/user/${slug}/view-message`);
+      router.push(`/message`);
     } catch (error) {
       alert("Invalid password or message not found");
     } finally {
