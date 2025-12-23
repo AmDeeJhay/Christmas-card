@@ -5,7 +5,7 @@ import EnvelopeSequence from "@/components/framer-motion/envelope-reveal";
 
 const mockMessage = `Hey Dora
 
-            This little digital note comes with a sprinkle of holiday magic just for you. 🌟
+  This little digital note comes with a sprinkle of holiday magic just for you. 🌟
 
 May your Christmas be filled with laughter louder than the office printer, treats sweeter than our coffee breaks, and all the joy your heart can hold. 🎅❄️
 
