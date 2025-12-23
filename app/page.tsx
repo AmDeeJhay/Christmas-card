@@ -29,19 +29,23 @@ export default function HomePage() {
           <div className="px-6 pb-10 md:px-12 md:pb-10 flex flex-col gap-4 w-full max-w-md">
             {/* Primary button */}
             <Link
+<<<<<<< Updated upstream
               href="/create"
               className="bg-white border border-white flex items-center justify-center text-center text-[#000000] font-normal rounded-full py-4 px-6 w-full hover:border-white hover:bg-transparent hover:text-white transition-class text-sm md:text-base"
             >
+=======
+              href={"/send-to"} className="bg-white border border-white flex items-center justify-center text-center text-[#000000] font-normal rounded-full py-4 px-6 w-full hover:border-white hover:bg-transparent hover:text-white transition-class text-sm md:text-base">
+>>>>>>> Stashed changes
               Send a Message
             </Link>
 
             {/* Secondary button */}
-            <Link
-              href={"message/user/883838"}
+            {/* <Link
+              href={"message/signin"}
               className="bg-transparent border flex items-center justify-center text-center border-white text-white font-normal rounded-full py-4 px-6 w-full hover:bg-white hover:text-[#220000] transition-class text-sm md:text-base"
             >
               Check for a Message
-            </Link>
+            </Link> */}
           </div>
         </div>
       </main>
