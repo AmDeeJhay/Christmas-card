@@ -36,12 +36,12 @@ export default function HomePage() {
             </Link>
 
             {/* Secondary button */}
-            <Link
-              href={"message/user/883838"}
+            {/* <Link
+              href={"message/signin"}
               className="bg-transparent border flex items-center justify-center text-center border-white text-white font-normal rounded-full py-4 px-6 w-full hover:bg-white hover:text-[#220000] transition-class text-sm md:text-base"
             >
               Check for a Message
-            </Link>
+            </Link> */}
           </div>
         </div>
       </main>
