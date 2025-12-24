@@ -1,5 +1,8 @@
+"use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import PageTransition from "@/components/framer-motion/page-transition";
 import EnvelopeSequence from "@/components/framer-motion/envelope-reveal";
 
@@ -14,6 +17,21 @@ P.S. Working with you this year has been the best gift of all… just saying. �
 Merry Christmas & Happy New Year!” 🎉💌`;
 
 export default function ViewPage() {
+  const params = useParams() as { user_id?: string };
+  const slug = params?.user_id;
+
+  const [message, setMessage] = useState(() => {
+    if (typeof window !== "undefined" && slug) {
+      const stored = localStorage.getItem(`message:${slug}`);
+      if (stored) {
+        const data = JSON.parse(stored);
+        return data.text || data.message || mockMessage;
+      }
+    }
+    return mockMessage;
+  });
+
+
   return (
     <PageTransition>
       <div className="relative h-full flex flex-col items-center justify-start overflow-hidden">
@@ -36,9 +54,7 @@ export default function ViewPage() {
             src="/images/xmas-tree-top.png"
             alt="Christmas tree"
             fill
-            layout="fill"
-            objectFit="contain"
-            objectPosition="top"
+            className="object-cover object-bottom"
             priority
           />
         </div>
@@ -49,11 +65,7 @@ export default function ViewPage() {
             Opening your message
           </h1>
 
-         
-          <EnvelopeSequence
-            message={mockMessage}
-          />
-         
+          <EnvelopeSequence message={message} />
         </main>
 
         {/* Footer */}
