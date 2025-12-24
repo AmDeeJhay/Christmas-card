@@ -47,7 +47,7 @@ const OverviewPage: React.FC = () => {
           />
         </div>
 
-        
+
         <div className="absolute left-55 transform -translate-x-1/2 bottom-27 z-30 flex items-center gap-2 max-w-full">
           <div className="flex-1 bg-white rounded-full px-4 py-1 shadow-lg text-[12px] text-[#FF0000] truncate">{messageLink}</div>
           <button onClick={handleCopy} className="mr-12 bg-[#F5C000] text-black px-4 py-1 rounded-full text-xs font-medium">{copied ? 'Copied!' : 'Copy'}</button>
