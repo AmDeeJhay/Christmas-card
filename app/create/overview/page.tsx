@@ -39,6 +39,12 @@ const OverviewPage: React.FC = () => {
 
           {/* Decorative spiral overlay (positioned over lower-right of sleigh) */}
           <img src="/images/spiral.svg" alt="Spiral" className="absolute right-10 bottom-36 w-30 h-auto z-20 pointer-events-none" />
+
+          {/* Overlay between sleigh legs and copy pill */}
+          <div
+            className="absolute left-1/2 transform -translate-x-1/2 bottom-0 h-32 w-[92%] bg-[#220000]/98 pointer-events-none"
+            style={{ zIndex: 15 }}
+          />
         </div>
 
         
