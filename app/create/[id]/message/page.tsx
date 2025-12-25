@@ -21,6 +21,7 @@ const MessagePage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type?: any } | null>(null);
+  const [retryAvailable, setRetryAvailable] = useState(false);
 
   const handleSubmit = async () => {
     if (submitting) return;
@@ -85,10 +86,19 @@ const MessagePage: React.FC = () => {
       console.error("Create message failed", err);
       // If unauthorized, prompt for magic link
       const status = err?.response?.status;
+      const isNetworkError = err?.message === 'Network Error' || !err?.response;
       if (status === 401) {
         // open modal to request magic link
         setShowAuthModal(true);
         setToast({ msg: 'Authentication required. Please sign in.', type: 'error' });
+        setSubmitting(false);
+        return;
+      }
+
+      // If server returned 502 or network error, allow retry
+      if (status === 502 || isNetworkError) {
+        setToast({ msg: 'Server unavailable. Try again?', type: 'error' });
+        setRetryAvailable(true);
         setSubmitting(false);
         return;
       }
@@ -282,6 +292,16 @@ const MessagePage: React.FC = () => {
         >
           {submitting ? "Submitting…" : "Submit"}
         </button>
+        {retryAvailable && (
+          <div className="w-full mt-3 flex justify-center">
+            <button
+              onClick={() => { setRetryAvailable(false); handleSubmit(); }}
+              className="px-4 py-2 rounded bg-yellow-500 text-black"
+            >
+              Retry
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Footer */}

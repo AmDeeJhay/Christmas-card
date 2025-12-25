@@ -90,8 +90,24 @@ export const createTextMessage = async (
   token?: string
 ): Promise<CreateMessageResponse> => {
   const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
-  const response = await api.post("/messages", { ...data, type: "text" }, config);
-  return response.data;
+  // retry loop for transient 5xx / network errors
+  const maxAttempts = 3;
+  let attempt = 0;
+  while (true) {
+    try {
+      const response = await api.post("/messages", { ...data, type: "text" }, config);
+      return response.data;
+    } catch (err: any) {
+      attempt++;
+      const status = err?.response?.status;
+      const isRetryable = !err?.response || (status >= 500 && status < 600);
+      if (attempt >= maxAttempts || !isRetryable) throw err;
+      // exponential backoff
+      const delay = 200 * Math.pow(2, attempt - 1);
+      await new Promise((r) => setTimeout(r, delay));
+      continue;
+    }
+  }
 };
 
 export const createVideoMessage = async (
@@ -110,8 +126,22 @@ export const createVideoMessage = async (
 
   // Let the browser/axios set the multipart boundary Content-Type header.
   const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
-  const response = await api.post("/messages", formData, config);
-  return response.data;
+  const maxAttempts = 3;
+  let attempt = 0;
+  while (true) {
+    try {
+      const response = await api.post("/messages", formData, config);
+      return response.data;
+    } catch (err: any) {
+      attempt++;
+      const status = err?.response?.status;
+      const isRetryable = !err?.response || (status >= 500 && status < 600);
+      if (attempt >= maxAttempts || !isRetryable) throw err;
+      const delay = 200 * Math.pow(2, attempt - 1);
+      await new Promise((r) => setTimeout(r, delay));
+      continue;
+    }
+  }
 };
 
 export const checkMessageExists = async (
