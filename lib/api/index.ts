@@ -1,9 +1,13 @@
 import axios from "axios";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+if (!BACKEND_URL) {
+  throw new Error('Missing NEXT_PUBLIC_BACKEND_URL environment variable. Set it in .env.local');
+}
 
 const api = axios.create({
   baseURL: BACKEND_URL,
+  withCredentials: true, // allow browser to send/receive HTTP-only auth cookies
 });
 
 // Types
@@ -83,21 +87,16 @@ export const verifyMagicLink = async (token: string): Promise<void> => {
 // Messages endpoints
 export const createTextMessage = async (
   data: CreateTextMessageData,
-  token: string
+  token?: string
 ): Promise<CreateMessageResponse> => {
-  const response = await api.post(
-    "/messages",
-    { ...data, type: "text" },
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
+  const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
+  const response = await api.post("/messages", { ...data, type: "text" }, config);
   return response.data;
 };
 
 export const createVideoMessage = async (
   data: CreateVideoMessageData,
-  token: string
+  token?: string
 ): Promise<CreateMessageResponse> => {
   const formData = new FormData();
   formData.append("type", "video");
@@ -109,12 +108,9 @@ export const createVideoMessage = async (
   formData.append("file", data.file);
   formData.append("senderId", data.senderId);
 
-  const response = await api.post("/messages", formData, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  // Let the browser/axios set the multipart boundary Content-Type header.
+  const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
+  const response = await api.post("/messages", formData, config);
   return response.data;
 };
 
@@ -128,16 +124,11 @@ export const checkMessageExists = async (
 
 export const createMessageMagicLink = async (
   slug: string,
-  token: string
+  token?: string
 ): Promise<{ success: boolean }> => {
-  // Placeholder: POST /messages/:slug/magic-link to send link to recipient
-  const response = await api.post(
-    `/messages/${slug}/magic-link`,
-    {},
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
+  // POST /messages/:slug/magic-link to send link to recipient
+  const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
+  const response = await api.post(`/messages/${slug}/magic-link`, {}, config);
   return response.data;
 };
 
@@ -164,11 +155,10 @@ export const openMessage = async (
 export const replyToMessage = async (
   slug: string,
   replyData: ReplyData,
-  token: string
+  token?: string
 ): Promise<ReplyResponse> => {
-  // Placeholder: POST /messages/:slug/reply
-  const response = await api.post(`/messages/${slug}/reply`, replyData, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  // POST /messages/:slug/reply
+  const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
+  const response = await api.post(`/messages/${slug}/reply`, replyData, config);
   return response.data;
 };

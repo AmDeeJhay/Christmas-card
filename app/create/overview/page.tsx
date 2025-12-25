@@ -5,9 +5,22 @@ import React, { useState } from "react";
 const OverviewPage: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
-  const messageLink = "holigram/message/dora_etim/bhvgjkbadfyuqgejeuguywvhjc";
+  const [messageLink, setMessageLink] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const slug = sessionStorage.getItem('cardSlug');
+      if (slug) {
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        setMessageLink(`${origin}/message/${slug}`);
+      }
+    } catch (e) {
+      console.warn('Could not read cardSlug', e);
+    }
+  }, [])
 
   const handleCopy = async () => {
+    if (!messageLink) return;
     try {
       await navigator.clipboard.writeText(messageLink);
       setCopied(true);
@@ -49,8 +62,8 @@ const OverviewPage: React.FC = () => {
 
 
         <div className="absolute left-55 transform -translate-x-1/2 bottom-27 z-30 flex items-center gap-2 max-w-full">
-          <div className="flex-1 bg-white rounded-full px-4 py-1 shadow-lg text-[12px] text-[#FF0000] truncate">{messageLink}</div>
-          <button onClick={handleCopy} className="mr-12 bg-[#F5C000] text-black px-4 py-1 rounded-full text-xs font-medium">{copied ? 'Copied!' : 'Copy'}</button>
+          <div className="flex-1 bg-white rounded-full px-4 py-1 shadow-lg text-[12px] text-[#FF0000] truncate">{messageLink ?? '—'}</div>
+          <button onClick={handleCopy} className="mr-12 bg-[#F5C000] text-black px-4 py-1 rounded-full text-xs font-medium" disabled={!messageLink}>{copied ? 'Copied!' : 'Copy'}</button>
         </div>
 
         {/* small helper label */}
