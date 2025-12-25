@@ -21,7 +21,6 @@ const MessagePage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type?: any } | null>(null);
-  const [retryAvailable, setRetryAvailable] = useState(false);
 
   const handleSubmit = async () => {
     if (submitting) return;
@@ -80,34 +79,29 @@ const MessagePage: React.FC = () => {
         }
       }
 
-      // proceed to secure-message step (server-side created or local draft)
+      // proceed to secure-message step
       router.push("/create/secure-message");
     } catch (err: any) {
       console.error("Create message failed", err);
-      // If unauthorized, prompt for magic link
+      
       const status = err?.response?.status;
       const isNetworkError = err?.message === 'Network Error' || !err?.response;
+
       if (status === 401) {
-        // open modal to request magic link
         setShowAuthModal(true);
         setToast({ msg: 'Authentication required. Please sign in.', type: 'error' });
-        setSubmitting(false);
-        return;
+      } else if (status === 502 || isNetworkError) {
+        setToast({ msg: 'Server unavailable. Please try clicking submit again.', type: 'error' });
+      } else {
+        // General fallback
+        setToast({ msg: 'Something went wrong. Please try again.', type: 'error' });
       }
-
-      // If server returned 502 or network error, allow retry
-      if (status === 502 || isNetworkError) {
-        setToast({ msg: 'Server unavailable. Try again?', type: 'error' });
-        setRetryAvailable(true);
-        setSubmitting(false);
-        return;
-      }
-
-      // fallback: proceed but inform user
-      setToast({ msg: 'Failed to create message on server — saved locally.', type: 'error' });
-      router.push("/create/secure-message");
-    } finally {
+      
+      // Crucial: Set submitting to false so the button becomes clickable again
       setSubmitting(false);
+    } finally {
+      // If we haven't navigated away yet (due to error), ensure button is active
+      // Note: If successful, the router.push handles the transition
     }
   };
 
@@ -133,13 +127,12 @@ const MessagePage: React.FC = () => {
     const pressedInset = pressed ? 'inset 0 14px 26px rgba(0,0,0,0.75)' : baseInset
     const boxShadow = `${pressedInset}, ${outerGlow}`
 
-    // determine theme background by label keywords
     const key = label.toLowerCase().includes('crimson')
       ? 'crimson'
       : label.toLowerCase().includes('evergreen')
         ? 'evergreen'
         : 'midnight'
-    // exact border colors and optional backgrounds per theme
+        
     const borderByKey: Record<string, string> = {
       crimson: '#C40909',
       evergreen: '#00B83D',
@@ -167,7 +160,6 @@ const MessagePage: React.FC = () => {
           style={{ boxShadow, transition: 'box-shadow 180ms ease, transform 120ms', borderColor, background: bgColor }}
         >
           <div className="relative w-full h-full flex items-center justify-center">
-            {/* shadow element sitting behind the icon */}
             <span
               aria-hidden
               className="absolute rounded-full"
@@ -184,14 +176,13 @@ const MessagePage: React.FC = () => {
             <img src={icon} alt="" className="relative z-10 object-contain" style={{ width: iconSize, height: iconSize, filter: 'brightness(1.25)', transition: 'filter 140ms ease' }} />
           </div>
         </button>
-        <span className={`text-[10px] text-center whitespace-nowrap mt-2 max-w-[88px] ${active ? 'text-white' : 'text-white'}`}>{label}</span>
+        <span className={`text-[10px] text-center whitespace-nowrap mt-2 max-w-[88px] text-white`}>{label}</span>
       </div>
     )
   }
 
   return (
     <div className="min-h-full w-screen bg-gradient-to-b relative overflow-hidden flex flex-col">
-      {/* Garland */}
       <div className="w-full relative h-32 flex-shrink-0">
         <img
           src="/images/Garland.svg"
@@ -200,9 +191,7 @@ const MessagePage: React.FC = () => {
         />
       </div>
 
-      {/* Main */}
       <div className="flex-1 flex flex-col items-center px-6 z-10">
-        {/* Message box */}
         <div
           className={`w-full rounded-2xl border-2 ${mode === "text"
             ? "border-[#FF0F0F]"
@@ -236,7 +225,6 @@ const MessagePage: React.FC = () => {
           )}
         </div>
 
-        {/* Toggle */}
         <div className="flex w-full bg-red-950/60 rounded-full p-1.5 mt-4">
           <button
             onClick={() => setMode("text")}
@@ -258,7 +246,6 @@ const MessagePage: React.FC = () => {
           </button>
         </div>
 
-        {/* Themes */}
         <div className="flex gap-4 mt-6">
           <ThemeButton
             label="Crimson Christmas"
@@ -283,28 +270,16 @@ const MessagePage: React.FC = () => {
           />
         </div>
 
-        {/* Submit */}
         <button
           onClick={handleSubmit}
           disabled={!isValid || submitting}
           aria-disabled={!isValid || submitting}
-          className={`w-full rounded-full py-4 mt-8 font-medium shadow-lg transition ${isValid ? 'bg-white text-gray-900 active:scale-95' : 'bg-white/30 text-gray-400 cursor-not-allowed'}`}
+          className={`w-full rounded-full py-4 mt-8 font-medium shadow-lg transition ${isValid && !submitting ? 'bg-white text-gray-900 active:scale-95' : 'bg-white/30 text-gray-400 cursor-not-allowed'}`}
         >
           {submitting ? "Submitting…" : "Submit"}
         </button>
-        {retryAvailable && (
-          <div className="w-full mt-3 flex justify-center">
-            <button
-              onClick={() => { setRetryAvailable(false); handleSubmit(); }}
-              className="px-4 py-2 rounded bg-yellow-500 text-black"
-            >
-              Retry
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* Footer */}
       <footer className="text-center text-sm text-white/70 py-4">
         powered by Applift
       </footer>
@@ -322,7 +297,3 @@ const Wrapped = () => (
 );
 
 export default Wrapped;
-
-
-
-
