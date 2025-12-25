@@ -1,6 +1,6 @@
 "use client"
 import React, { useCallback, useRef, useState } from 'react'
-import { validateFileType } from '../lib'
+import { validateFileType } from '@/lib/validators'
 
 type Props = {
   onChange: (dataUrl: string | null) => void
