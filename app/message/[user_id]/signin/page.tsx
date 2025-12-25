@@ -9,7 +9,6 @@ import { openMessage } from "@/lib/api";
 export default function SignInPage() {
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const params = useParams() as { user_id?: string };
@@ -17,16 +16,16 @@ export default function SignInPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!slug || !password) return;
+    if (!slug) return;
 
     setLoading(true);
     try {
-      const messageData = await openMessage(slug, password);
-  
+      const messageData = await openMessage(slug);
+
       localStorage.setItem(`message:${slug}`, JSON.stringify(messageData));
       router.push(`/message`);
     } catch (error) {
-      alert("Invalid password or message not found");
+      alert("Message not found");
     } finally {
       setLoading(false);
     }
@@ -77,17 +76,7 @@ export default function SignInPage() {
               />
             </div>
 
-            <div className="flex flex-col items-start w-full">
-              <label className="text-white text-xs mb-1">Password</label>
-              <input
-                type="password"
-                placeholder="Enter your code"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-full border border-[#FF0F0F] bg-[#501F1F] px-4 py-3 text-white placeholder:text-[#804040] placeholder:text-[11px] focus:outline-none"
-                required
-              />
-            </div>
+            {/* No password required to open messages anymore */}
 
             {/* Button */}
             <button
@@ -99,14 +88,7 @@ export default function SignInPage() {
             </button>
           </form>
 
-          {/* Hint Box */}
-          <div className="w-full border border-dashed border-[#F78000] rounded-[10px] p-3 mb-6 bg-[#3D2201]">
-            <p className="text-[9px] text-[#F78000] text-left">
-              Hint: The day you almost killed me with work call and didn’t check
-              on my mental health. It was a Wednesday we ended up talking for
-              about 45 mins, you know what we talked about
-            </p>
-          </div>
+          {/* Hint removed */}
         </main>
 
         {/* Footer */}

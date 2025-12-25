@@ -60,11 +60,11 @@ export default function RecordingPage() {
           transition={{ layout: { duration: 0.8, ease: "easeInOut" } }}
           className="relative z-20 flex flex-col items-center text-center px-6 max-w-2xl mt-12"
         >
-          {/* Hint box (only before opening) */}
+          {/* Intro box (only before opening) */}
           <AnimatePresence>
             {!isOpening && (
               <motion.div
-                key="hint-box"
+                key="intro-box"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}

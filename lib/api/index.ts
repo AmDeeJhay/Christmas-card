@@ -7,8 +7,40 @@ if (!BACKEND_URL) {
 
 const api = axios.create({
   baseURL: BACKEND_URL,
-  withCredentials: true, // allow browser to send/receive HTTP-only auth cookies
+  timeout: 30000, // 30 second timeout
 });
+
+// Add request interceptor for debugging
+api.interceptors.request.use(
+  (config) => {
+    console.log('API Request:', {
+      method: config.method,
+      url: config.url,
+      data: config.data,
+    });
+    return config;
+  },
+  (error) => {
+    console.error('Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for debugging
+api.interceptors.response.use(
+  (response) => {
+    console.log('API Response:', response.status, response.data);
+    return response;
+  },
+  (error) => {
+    console.error('Response Error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    return Promise.reject(error);
+  }
+);
 
 // Types
 export interface SendMagicLinkResponse {
@@ -32,9 +64,6 @@ export interface CreateTextMessageData {
   recipientLastName: string;
   text: string;
   theme: string;
-  password: string;
-  passwordHint: string;
-  hint: string;
   senderId: string;
 }
 
@@ -42,8 +71,6 @@ export interface CreateVideoMessageData {
   recipientFirstName: string;
   recipientLastName: string;
   theme: string;
-  password: string;
-  passwordHint: string;
   file: File;
   senderId: string;
 }
@@ -56,8 +83,6 @@ export interface MessageData {
   text?: string;
   videoUrl?: string;
   theme: string;
-  passwordHint: string;
-  hint: string;
   senderId: string;
   createdAt: string;
 }
@@ -76,12 +101,22 @@ export const sendMagicLink = async (
   email: string,
   name: string
 ): Promise<SendMagicLinkResponse> => {
-  const response = await api.post("/auth/add-user", { email, name });
-  return response.data;
+  try {
+    const response = await api.post("/auth/add-user", { email, name });
+    return response.data;
+  } catch (error: any) {
+    console.error('sendMagicLink error:', error);
+    throw new Error(error.response?.data?.message || 'Failed to send magic link');
+  }
 };
 
 export const verifyMagicLink = async (token: string): Promise<void> => {
-  await api.get(`/auth/magic/${token}`);
+  try {
+    await api.get(`/auth/magic/${token}`);
+  } catch (error: any) {
+    console.error('verifyMagicLink error:', error);
+    throw new Error(error.response?.data?.message || 'Failed to verify magic link');
+  }
 };
 
 // Messages endpoints
@@ -89,25 +124,53 @@ export const createTextMessage = async (
   data: CreateTextMessageData,
   token?: string
 ): Promise<CreateMessageResponse> => {
-  const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
-  // retry loop for transient 5xx / network errors
   const maxAttempts = 3;
   let attempt = 0;
-  while (true) {
+
+  // Prepare the payload - ensure all fields are present
+  const payload = {
+    type: "text",
+    recipientFirstName: data.recipientFirstName,
+    recipientLastName: data.recipientLastName,
+    text: data.text,
+    theme: data.theme,
+    senderId: data.senderId,
+  };
+
+  console.log('Creating text message with payload:', payload);
+
+  while (attempt < maxAttempts) {
     try {
-      const response = await api.post("/messages", { ...data, type: "text" }, config);
+      const config = token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {};
+
+      const response = await api.post("/messages", payload, config);
       return response.data;
     } catch (err: any) {
       attempt++;
+      console.error(`Attempt ${attempt} failed:`, err);
+
       const status = err?.response?.status;
       const isRetryable = !err?.response || (status >= 500 && status < 600);
-      if (attempt >= maxAttempts || !isRetryable) throw err;
-      // exponential backoff
+
+      if (attempt >= maxAttempts || !isRetryable) {
+        // Throw a more descriptive error
+        const errorMessage = err?.response?.data?.message
+          || err?.response?.data?.error
+          || err?.message
+          || 'Failed to create message';
+        throw new Error(errorMessage);
+      }
+
+      // Exponential backoff
       const delay = 200 * Math.pow(2, attempt - 1);
+      console.log(`Retrying in ${delay}ms...`);
       await new Promise((r) => setTimeout(r, delay));
-      continue;
     }
   }
+
+  throw new Error('Failed to create message after multiple attempts');
 };
 
 export const createVideoMessage = async (
@@ -119,67 +182,99 @@ export const createVideoMessage = async (
   formData.append("recipientFirstName", data.recipientFirstName);
   formData.append("recipientLastName", data.recipientLastName);
   formData.append("theme", data.theme);
-  formData.append("password", data.password);
-  formData.append("passwordHint", data.passwordHint);
   formData.append("file", data.file);
   formData.append("senderId", data.senderId);
 
-  // Let the browser/axios set the multipart boundary Content-Type header.
-  const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
   const maxAttempts = 3;
   let attempt = 0;
-  while (true) {
+
+  while (attempt < maxAttempts) {
     try {
+      const config = token
+        ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // Don't set Content-Type, let browser set it with boundary
+          }
+        }
+        : {};
+
       const response = await api.post("/messages", formData, config);
       return response.data;
     } catch (err: any) {
       attempt++;
+      console.error(`Video upload attempt ${attempt} failed:`, err);
+
       const status = err?.response?.status;
       const isRetryable = !err?.response || (status >= 500 && status < 600);
-      if (attempt >= maxAttempts || !isRetryable) throw err;
+
+      if (attempt >= maxAttempts || !isRetryable) {
+        const errorMessage = err?.response?.data?.message
+          || err?.response?.data?.error
+          || err?.message
+          || 'Failed to create video message';
+        throw new Error(errorMessage);
+      }
+
       const delay = 200 * Math.pow(2, attempt - 1);
       await new Promise((r) => setTimeout(r, delay));
-      continue;
     }
   }
+
+  throw new Error('Failed to create video message after multiple attempts');
 };
 
 export const checkMessageExists = async (
   slug: string
 ): Promise<CheckMessageExistsResponse> => {
-  const response = await api.get(`/messages/${slug}/exists`);
-  return response.data;
+  try {
+    const response = await api.get(`/messages/${slug}/exists`);
+    return response.data;
+  } catch (error: any) {
+    console.error('checkMessageExists error:', error);
+    throw new Error(error.response?.data?.message || 'Failed to check message');
+  }
 };
-
 
 export const createMessageMagicLink = async (
   slug: string,
   token?: string
 ): Promise<{ success: boolean }> => {
-  // POST /messages/:slug/magic-link to send link to recipient
-  const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
-  const response = await api.post(`/messages/${slug}/magic-link`, {}, config);
-  return response.data;
+  try {
+    const config = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : {};
+    const response = await api.post(`/messages/${slug}/magic-link`, {}, config);
+    return response.data;
+  } catch (error: any) {
+    console.error('createMessageMagicLink error:', error);
+    throw new Error(error.response?.data?.message || 'Failed to create magic link');
+  }
 };
 
 export const openMessageViaMagicLink = async (
   slug: string,
   magicToken: string
 ): Promise<MessageData> => {
-  // Placeholder: GET /messages/:slug/magic/:token
-  const response = await api.get(`/messages/${slug}/magic/${magicToken}`);
-  return response.data;
+  try {
+    const response = await api.get(`/messages/${slug}/magic/${magicToken}`);
+    return response.data;
+  } catch (error: any) {
+    console.error('openMessageViaMagicLink error:', error);
+    throw new Error(error.response?.data?.message || 'Failed to open message');
+  }
 };
 
 export const openMessage = async (
-  slug: string,
-  password: string
+  slug: string
 ): Promise<MessageData> => {
-  // Placeholder: GET /messages/:slug with password
-  const response = await api.get(`/messages/${slug}`, {
-    headers: { "X-Password": password },
-  });
-  return response.data;
+  try {
+    const response = await api.get(`/messages/${slug}`);
+    return response.data;
+  } catch (error: any) {
+    console.error('openMessage error:', error);
+    throw new Error(error.response?.data?.message || 'Failed to open message');
+  }
 };
 
 export const replyToMessage = async (
@@ -187,8 +282,14 @@ export const replyToMessage = async (
   replyData: ReplyData,
   token?: string
 ): Promise<ReplyResponse> => {
-  // POST /messages/:slug/reply
-  const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
-  const response = await api.post(`/messages/${slug}/reply`, replyData, config);
-  return response.data;
+  try {
+    const config = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : {};
+    const response = await api.post(`/messages/${slug}/reply`, replyData, config);
+    return response.data;
+  } catch (error: any) {
+    console.error('replyToMessage error:', error);
+    throw new Error(error.response?.data?.message || 'Failed to send reply');
+  }
 };

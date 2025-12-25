@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import { createTextMessage, createVideoMessage } from "../../../../lib/api";
@@ -22,8 +22,58 @@ const MessagePage: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type?: any } | null>(null);
 
+  // Load stored data from previous steps
+  const [recipientData, setRecipientData] = useState<{
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null>(null);
+
+  // Legacy security data removed from flow; not used anymore
+
+  useEffect(() => {
+    // Load recipient data from localStorage
+    try {
+      const encryptionData = localStorage.getItem("cardEncryption") || sessionStorage.getItem("cardEncryption");
+      if (encryptionData) {
+        const parsed = JSON.parse(encryptionData);
+        setRecipientData(parsed);
+        console.log("Loaded recipient data:", parsed);
+      } else {
+        console.warn("No recipient data found in storage");
+      }
+
+      // Clear any stored legacy security data
+      try {
+        localStorage.removeItem("cardSecurity");
+        sessionStorage.removeItem("cardSecurity");
+      } catch (e) {
+        console.warn("Could not clear legacy cardSecurity", e);
+      }
+    } catch (e) {
+      console.error("Error loading stored data:", e);
+    }
+  }, []);
+
+  // Auto-dismiss toast after 4 seconds
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(id);
+  }, [toast]);
+
   const handleSubmit = async () => {
     if (submitting) return;
+
+    // Validate that we have recipient data
+    if (!recipientData) {
+      setToast({
+        msg: 'Recipient information is missing. Please go back and fill it in.',
+        type: 'error'
+      });
+      return;
+    }
+
     setSubmitting(true);
 
     const payload = {
@@ -41,49 +91,64 @@ const MessagePage: React.FC = () => {
     }
 
     try {
-      if (mode === "text") {
-        const data = {
-          recipientFirstName: "",
-          recipientLastName: "",
-          text: message,
-          theme,
-          password: "",
-          passwordHint: "",
-          hint: "",
-          senderId: "",
-        };
-
-        const res = await createTextMessage(data);
-        if (res?.slug) {
-          try {
-            sessionStorage.setItem("cardSlug", res.slug);
-          } catch { }
-        }
-      } else {
-        if (!videoFile) throw new Error("No video file selected");
-        const data = {
-          recipientFirstName: "",
-          recipientLastName: "",
-          theme,
-          password: "",
-          passwordHint: "",
-          file: videoFile,
-          senderId: "",
-        } as any;
-
-        const res = await createVideoMessage(data);
-        if (res?.slug) {
-          try {
-            sessionStorage.setItem("cardSlug", res.slug);
-          } catch { }
-        }
+      // Get or create senderId using UUID
+      let senderId = localStorage.getItem("userId");
+      if (!senderId) {
+        // Generate UUID v4
+        senderId = crypto.randomUUID();
+        localStorage.setItem("userId", senderId);
+        console.log("Created new senderId:", senderId);
       }
 
-      // proceed to secure-message step
-      router.push("/create/secure-message");
+      if (mode === "text") {
+        const data = {
+          recipientFirstName: recipientData.firstName,
+          recipientLastName: recipientData.lastName,
+          text: message,
+          theme,
+          senderId: senderId,
+        };
+
+        console.log("Submitting text message:", data);
+        const res = await createTextMessage(data);
+        console.log("Text message created:", res);
+
+        if (res?.slug) {
+          try {
+            sessionStorage.setItem("cardSlug", res.slug);
+          } catch { }
+          // Navigate to overview where the shareable link is shown
+          router.push("/create/overview");
+        }
+      } else {
+        if (!videoFile) {
+          setToast({ msg: 'No video file selected', type: 'error' });
+          setSubmitting(false);
+          return;
+        }
+
+        const data = {
+          recipientFirstName: recipientData.firstName,
+          recipientLastName: recipientData.lastName,
+          theme,
+          file: videoFile,
+          senderId: senderId,
+        };
+
+        console.log("Submitting video message");
+        const res = await createVideoMessage(data);
+        console.log("Video message created:", res);
+
+        if (res?.slug) {
+          try {
+            sessionStorage.setItem("cardSlug", res.slug);
+          } catch { }
+          router.push("/create/overview");
+        }
+      }
     } catch (err: any) {
       console.error("Create message failed", err);
-      
+
       const status = err?.response?.status;
       const isNetworkError = err?.message === 'Network Error' || !err?.response;
 
@@ -92,16 +157,16 @@ const MessagePage: React.FC = () => {
         setToast({ msg: 'Authentication required. Please sign in.', type: 'error' });
       } else if (status === 502 || isNetworkError) {
         setToast({ msg: 'Server unavailable. Please try clicking submit again.', type: 'error' });
+      } else if (status === 400) {
+        setToast({ msg: err?.response?.data?.message || 'Invalid data. Please check all fields.', type: 'error' });
       } else {
-        // General fallback
-        setToast({ msg: 'Something went wrong. Please try again.', type: 'error' });
+        // Show the actual error message from the server if available
+        const errorMsg = err?.response?.data?.message || err?.message || 'Something went wrong. Please try again.';
+        setToast({ msg: errorMsg, type: 'error' });
       }
-      
+
       // Crucial: Set submitting to false so the button becomes clickable again
       setSubmitting(false);
-    } finally {
-      // If we haven't navigated away yet (due to error), ensure button is active
-      // Note: If successful, the router.push handles the transition
     }
   };
 
@@ -132,7 +197,7 @@ const MessagePage: React.FC = () => {
       : label.toLowerCase().includes('evergreen')
         ? 'evergreen'
         : 'midnight'
-        
+
     const borderByKey: Record<string, string> = {
       crimson: '#C40909',
       evergreen: '#00B83D',
@@ -192,6 +257,24 @@ const MessagePage: React.FC = () => {
       </div>
 
       <div className="flex-1 flex flex-col items-center px-6 z-10">
+        {/* Show recipient info if loaded */}
+        {/* {recipientData && (
+          <div className="w-full bg-green-900/30 border border-green-600 rounded-lg px-4 py-2 mt-4">
+            <p className="text-green-400 text-xs">
+              To: {recipientData.firstName} {recipientData.lastName}
+            </p>
+          </div>
+        )} */}
+
+        {/* Warning if no recipient data */}
+        {/* {!recipientData && (
+          <div className="w-full bg-yellow-900/30 border border-yellow-600 rounded-lg px-4 py-2 mt-4">
+            <p className="text-yellow-400 text-xs">
+              ⚠️ No recipient data found. Please go back and fill in recipient information.
+            </p>
+          </div>
+        )} */}
+
         <div
           className={`w-full rounded-2xl border-2 ${mode === "text"
             ? "border-[#FF0F0F]"
@@ -210,7 +293,11 @@ const MessagePage: React.FC = () => {
             <label className="flex flex-col items-center justify-center gap-3 py-10 cursor-pointer">
               <Image src="/images/upload.svg" alt="Upload Icon" width={48} height={48} className="text-[#804040]" />
               <p className="text-xs text-[#804040] items-center text-center max-w-xs">
-                MP4, MOV, or WebM • Up <br /> to 2 minutes
+                {videoFile ? (
+                  <span className="text-white font-medium">{videoFile.name}</span>
+                ) : (
+                  <>MP4, MOV, or WebM • Up <br /> to 2 minutes</>
+                )}
               </p>
               <input
                 type="file"
@@ -219,7 +306,7 @@ const MessagePage: React.FC = () => {
                 onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
               />
               <span className="bg-[#FF0F0F] text-white px-6 py-2 rounded-full text-sm">
-                Browse files
+                {videoFile ? 'Change file' : 'Browse files'}
               </span>
             </label>
           )}
@@ -272,9 +359,9 @@ const MessagePage: React.FC = () => {
 
         <button
           onClick={handleSubmit}
-          disabled={!isValid || submitting}
-          aria-disabled={!isValid || submitting}
-          className={`w-full rounded-full py-4 mt-8 font-medium shadow-lg transition ${isValid && !submitting ? 'bg-white text-gray-900 active:scale-95' : 'bg-white/30 text-gray-400 cursor-not-allowed'}`}
+          disabled={!isValid || submitting || !recipientData}
+          aria-disabled={!isValid || submitting || !recipientData}
+          className={`w-full rounded-full py-4 mt-8 font-medium shadow-lg transition ${isValid && !submitting && recipientData ? 'bg-white text-gray-900 active:scale-95' : 'bg-white/30 text-gray-400 cursor-not-allowed'}`}
         >
           {submitting ? "Submitting…" : "Submit"}
         </button>

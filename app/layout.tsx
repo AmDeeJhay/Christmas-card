@@ -14,6 +14,29 @@ export default function RootLayout({
 }) {
   useAppHeight();
 
+  // Ensure a persistent user UUID exists for requests
+  React.useEffect(() => {
+    try {
+      const key = 'userId';
+      let id = localStorage.getItem(key);
+      if (!id) {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+          id = crypto.randomUUID();
+        } else {
+          // Fallback simple UUID v4 generator
+          id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            const r = (Math.random() * 16) | 0,
+              v = c === 'x' ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+          });
+        }
+        localStorage.setItem(key, id);
+        console.log('Generated persistent userId:', id);
+      }
+    } catch (e) {
+      console.warn('Could not ensure persistent userId', e);
+    }
+  }, []);
   return (
     <html lang="en">
       <Head>

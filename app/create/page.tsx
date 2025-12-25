@@ -4,16 +4,16 @@ import React, { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation'
 import Image from 'next/image';
 
-const PasswordLockPage: React.FC = () => {
+const CreatePage: React.FC = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('')
+  // const [email, setEmail] = useState('')
   const router = useRouter()
   const params = useParams()
 
   const handleSubmit = () => {
     if (!isFormValid) return;
-    const payload = { firstName, lastName, email }
+    const payload = { firstName, lastName }
     try {
       localStorage.setItem('cardEncryption', JSON.stringify(payload))
       sessionStorage.setItem('cardEncryption', JSON.stringify(payload))
@@ -24,7 +24,7 @@ const PasswordLockPage: React.FC = () => {
     router.push(`/create/${id}/message`)
   };
 
-  const isFormValid = firstName.trim() !== '' && lastName.trim() !== '' && email.trim() !== ''
+  const isFormValid = firstName.trim() !== '' && lastName.trim() !== '';
 
   return (
     <div className="min-h-screen h-full w-full bg-linear-to-b relative overflow-hidden flex flex-col px-0 pb-6">
@@ -62,7 +62,7 @@ const PasswordLockPage: React.FC = () => {
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Enter a password to lock this message"
+              placeholder="Recipient's first name"
               className="block w-full rounded-full border-2 border-red-600 bg-red-900/40 px-4 py-3 text-white placeholder:text-red-300/50 placeholder:text-xs focus:outline-none focus:border-red-500 transition-colors"
             />
           </div>
@@ -76,13 +76,13 @@ const PasswordLockPage: React.FC = () => {
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              placeholder="Enter a password to lock this message"
+              placeholder="Recipient's last name"
               className="block w-full rounded-full border-2 border-red-600 bg-red-900/40 px-4 py-3 text-white placeholder:text-red-300/50 placeholder:text-xs focus:outline-none focus:border-red-500 transition-colors"
             />
           </div>
 
           {/* Email */}
-          <div className="w-full">
+          {/* <div className="w-full">
             <label className="text-white text-xs mb-1 block text-left pl-1">
               Email
             </label>
@@ -93,7 +93,7 @@ const PasswordLockPage: React.FC = () => {
               placeholder="Recipient email"
               className="block w-full rounded-full border-2 border-red-600 bg-red-900/40 px-4 py-3 text-white placeholder:text-red-300/50 placeholder:text-xs focus:outline-none focus:border-red-500 transition-colors"
             />
-          </div>
+          </div> */}
 
           {/* Continue Button */}
           <button
@@ -101,11 +101,10 @@ const PasswordLockPage: React.FC = () => {
             disabled={!isFormValid}
             // aria-disabled={!isFormValid} 
             type="button"
-            className={`w-full font-medium rounded-full py-4 px-6 mt-6 transition-all duration-200 ${
-              isFormValid
+            className={`w-full font-medium rounded-full py-4 px-6 mt-6 transition-all duration-200 ${isFormValid
                 ? "bg-white text-gray-900 hover:shadow-[0_8px_24px_rgba(243,9,9,0.25)] focus:outline-none focus:shadow-[0_10px_28px_rgba(243,9,9,0.30)] active:shadow-[0_6px_18px_rgba(243,9,9,0.40)] active:scale-95"
                 : "bg-white/30 text-gray-400 cursor-not-allowed"
-            }`}
+              }`}
           >
             Continue
           </button>
@@ -122,4 +121,4 @@ const PasswordLockPage: React.FC = () => {
   );
 };
 
-export default PasswordLockPage;
+export default CreatePage;
