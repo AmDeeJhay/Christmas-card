@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import PageTransition from "@/components/framer-motion/page-transition";
 import EnvelopeSequence from "@/components/framer-motion/envelope-reveal";
+import { openMessage } from "@/lib/api";
 
 const mockMessage = `Hey Dora
 
@@ -20,16 +21,45 @@ export default function ViewPage() {
   const params = useParams() as { user_id?: string };
   const slug = params?.user_id;
 
-  const [message, setMessage] = useState(() => {
-    if (typeof window !== "undefined" && slug) {
+  const [message, setMessage] = useState<string>(mockMessage);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!slug) return;
+
+    // Try to load from localStorage first
+    try {
       const stored = localStorage.getItem(`message:${slug}`);
       if (stored) {
         const data = JSON.parse(stored);
-        return data.text || data.message || mockMessage;
+        setMessage(data.text || data.message || mockMessage);
+        return;
       }
+    } catch (e) {
+      // ignore parse errors
     }
-    return mockMessage;
-  });
+
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const data = await openMessage(slug);
+        console.log('openMessage fetched for', slug, data);
+        try {
+          localStorage.setItem(`message:${slug}`, JSON.stringify(data));
+        } catch (e) { }
+        if (!mounted) return;
+        setMessage(data?.text || (data as any)?.message || mockMessage);
+      } catch (e) {
+        if (!mounted) return;
+        setMessage('Message not found');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+
+    return () => { mounted = false };
+  }, [slug]);
 
 
   return (
@@ -62,7 +92,7 @@ export default function ViewPage() {
         {/* Main content */}
         <main className="flex flex-col items-center text-center px-6 max-w-2xl z-10">
           <h1 className="text-4xl md:text-5xl font-normal text-[#FFC758] mb-4">
-            Opening your message
+            {loading ? 'Opening your message…' : 'Opening your message'}
           </h1>
 
           <EnvelopeSequence message={message} />
