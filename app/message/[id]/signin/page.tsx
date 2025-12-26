@@ -9,10 +9,11 @@ import { openMessage } from "@/lib/api";
 export default function SignInPage() {
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const params = useParams() as { user_id?: string };
-  const slug = params?.user_id;
+  const params = useParams() as { id?: string };
+  const slug = params?.id;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,11 +21,19 @@ export default function SignInPage() {
 
     setLoading(true);
     try {
-      const messageData = await openMessage(slug);
-
+      console.log('Opening message for slug:', slug, 'with name:', name, 'lastName:', lastName, 'password:', password);
+      const messageData = await openMessage(slug, name, lastName, password);
+      console.log('openMessage response:', messageData);
       localStorage.setItem(`message:${slug}`, JSON.stringify(messageData));
-      router.push(`/message`);
+      localStorage.setItem(`messageText:${slug}`, messageData.text || '');
+      localStorage.setItem(`messageVideo:${slug}`, messageData.video_url || '');
+      if (!messageData.video_url) {
+        router.push(`/message/${slug}/text`);
+      } else {
+        router.push(`/message/${slug}/recording`);
+      }
     } catch (error) {
+      console.error('openMessage error:', error);
       alert("Message not found");
     } finally {
       setLoading(false);
@@ -76,7 +85,17 @@ export default function SignInPage() {
               />
             </div>
 
-            {/* No password required to open messages anymore */}
+            <div className="flex flex-col items-start w-full">
+              <label className="text-white text-xs mb-1">Password (optional)</label>
+              <input
+                type="password"
+                placeholder="Enter the password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-full border border-[#FF0F0F] bg-[#501F1F] px-4 py-3 text-white placeholder:text-[#804040] placeholder:text-[11px] focus:outline-none"
+                // required
+              />
+            </div>
 
             {/* Button */}
             <button
