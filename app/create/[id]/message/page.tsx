@@ -2,9 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
-import { createTextMessage, createVideoMessage } from "../../../../lib/api";
+import { AxiosError } from "axios";
+import {
+  createTextMessage,
+  createVideoMessage,
+  ErrorResponse,
+} from "../../../../lib/api";
 import MagicLinkModal from "../../../../components/MagicLinkModal";
-import Toast from "../../../../components/Toast";
+import Toast, { ToastType } from "../../../../components/Toast";
 import ErrorBoundary from "../../../../components/ErrorBoundary";
 
 const MessagePage: React.FC = () => {
@@ -20,6 +25,9 @@ const MessagePage: React.FC = () => {
 
   const [submitting, setSubmitting] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type?: ToastType } | null>(
+    null
+  );
   const [toast, setToast] = useState<{ msg: string; type?: string } | null>(null);
 
   // Load stored data from previous steps
@@ -32,7 +40,9 @@ const MessagePage: React.FC = () => {
   useEffect(() => {
     // Load recipient data from localStorage
     try {
-      const encryptionData = localStorage.getItem("cardEncryption") || sessionStorage.getItem("cardEncryption");
+      const encryptionData =
+        localStorage.getItem("cardEncryption") ||
+        sessionStorage.getItem("cardEncryption");
       if (encryptionData) {
         const parsed = JSON.parse(encryptionData);
         setRecipientData(parsed);
@@ -66,8 +76,8 @@ const MessagePage: React.FC = () => {
     // Validate that we have recipient data
     if (!recipientData) {
       setToast({
-        msg: 'Recipient information is missing. Please go back and fill it in.',
-        type: 'error'
+        msg: "Recipient information is missing. Please go back and fill it in.",
+        type: "error",
       });
       return;
     }
@@ -115,9 +125,17 @@ const MessagePage: React.FC = () => {
         console.log("Submitting text message:", data);
         res = await createTextMessage(data);
         console.log("Text message created:", res);
+
+        if (res?.slug) {
+          try {
+            sessionStorage.setItem("cardSlug", res.slug);
+          } catch {}
+          // Navigate to overview where the shareable link is shown
+          router.push("/create/overview");
+        }
       } else {
         if (!videoFile) {
-          setToast({ msg: 'No video file selected', type: 'error' });
+          setToast({ msg: "No video file selected", type: "error" });
           setSubmitting(false);
           return;
         }
@@ -137,40 +155,45 @@ const MessagePage: React.FC = () => {
         console.log("Video message created:", res);
       }
 
-      // Handle successful response
-      if (res?.slug) {
-        try {
-          sessionStorage.setItem("cardSlug", res.slug);
-        } catch (e) {
-          console.warn("Could not save slug to sessionStorage", e);
+        if (res?.slug) {
+          try {
+            sessionStorage.setItem("cardSlug", res.slug);
+          } catch {}
+          router.push("/create/overview");
         }
         // Navigate to overview where the shareable link is shown
         router.push("/create/overview");
       } else {
         throw new Error("No slug returned from server");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Create message failed", err);
       console.error("Full error object:", JSON.stringify(err, null, 2));
       console.error("Response data:", err?.response?.data);
 
-      const status = err?.response?.status;
-      const isNetworkError = err?.message === 'Network Error' || !err?.response;
-      const backendErrorMessage = err?.response?.data?.message || err?.response?.data?.error;
+      const status = (err as AxiosError)?.response?.status;
+      const isNetworkError =
+        (err as AxiosError)?.message === "Network Error" ||
+        !(err as AxiosError)?.response;
 
       if (status === 401) {
         setShowAuthModal(true);
-        setToast({ msg: 'Authentication required. Please sign in.', type: 'error' });
-      } else if (status === 500) {
-        const errorMsg = backendErrorMessage
-          ? `Server error: ${backendErrorMessage}`
-          : 'Internal server error. Check backend logs.';
-        setToast({ msg: errorMsg, type: 'error' });
-        console.error("🔴 Backend returned 500. Check your backend console for the actual error!");
+        setToast({
+          msg: "Authentication required. Please sign in.",
+          type: "error",
+        });
       } else if (status === 502 || isNetworkError) {
-        setToast({ msg: 'Server unavailable. Please try clicking submit again.', type: 'error' });
+        setToast({
+          msg: "Server unavailable. Please try clicking submit again.",
+          type: "error",
+        });
       } else if (status === 400) {
-        setToast({ msg: backendErrorMessage || 'Invalid data. Please check all fields.', type: 'error' });
+        setToast({
+          msg:
+            (err as AxiosError<ErrorResponse>)?.response?.data?.message ||
+            "Invalid data. Please check all fields.",
+          type: "error",
+        });
       } else {
         const errorMsg = backendErrorMessage || err?.message || 'Something went wrong. Please try again.';
         setToast({ msg: errorMsg, type: 'error' });
@@ -180,7 +203,7 @@ const MessagePage: React.FC = () => {
     }
   };
 
-  const isValid = mode === 'text' ? message.trim().length > 0 : !!videoFile;
+  const isValid = mode === "text" ? message.trim().length > 0 : !!videoFile;
 
   const ThemeButton = ({
     label,
@@ -196,31 +219,38 @@ const MessagePage: React.FC = () => {
     iconSize?: number;
   }) => {
     const [pressed, setPressed] = React.useState(false);
+    const [pressed, setPressed] = React.useState(false);
 
-    const baseInset = active ? 'inset 0 8px 18px rgba(0,0,0,0.6)' : 'inset 0 0 0 rgba(0,0,0,0)';
-    const outerGlow = active ? '0 0 12px rgba(220,38,38,0.12)' : '0 0 0 rgba(0,0,0,0)';
-    const pressedInset = pressed ? 'inset 0 14px 26px rgba(0,0,0,0.75)' : baseInset;
+    const baseInset = active
+      ? "inset 0 8px 18px rgba(0,0,0,0.6)"
+      : "inset 0 0 0 rgba(0,0,0,0)";
+    const outerGlow = active
+      ? "0 0 12px rgba(220,38,38,0.12)"
+      : "0 0 0 rgba(0,0,0,0)";
+    const pressedInset = pressed
+      ? "inset 0 14px 26px rgba(0,0,0,0.75)"
+      : baseInset;
     const boxShadow = `${pressedInset}, ${outerGlow}`;
 
-    const key = label.toLowerCase().includes('crimson')
-      ? 'crimson'
-      : label.toLowerCase().includes('evergreen')
-        ? 'evergreen'
-        : 'midnight';
+    const key = label.toLowerCase().includes("crimson")
+      ? "crimson"
+      : label.toLowerCase().includes("evergreen")
+      ? "evergreen"
+      : "midnight";
 
     const borderByKey: Record<string, string> = {
-      crimson: '#C40909',
-      evergreen: '#00B83D',
-      midnight: '#6C6C6C',
+      crimson: "#C40909",
+      evergreen: "#00B83D",
+      midnight: "#6C6C6C",
     };
 
-    const bgByKeyStyle: Record<string, string> = {
-      crimson: '#4C0000',
-      evergreen: '#004700',
-      midnight: '#000000',
+    const bgByKeyStyle: Record<string, string | undefined> = {
+      crimson: "#4C0000",
+      evergreen: "#004700",
+      midnight: "#000000",
     };
 
-    const borderColor = borderByKey[key] || '#ffffff';
+    const borderColor = borderByKey[key] || "#ffffff";
     const bgColor = bgByKeyStyle[key];
 
     return (
@@ -231,9 +261,13 @@ const MessagePage: React.FC = () => {
           onMouseUp={() => setPressed(false)}
           onMouseLeave={() => setPressed(false)}
           aria-pressed={active}
-          type="button"
-          className="relative flex items-center justify-center w-24 h-24 rounded-xl border transition-transform duration-150"
-          style={{ boxShadow, transition: 'box-shadow 180ms ease, transform 120ms', borderColor, background: bgColor }}
+          className={`relative flex items-center justify-center w-24 h-24 rounded-xl border transition-transform duration-150`}
+          style={{
+            boxShadow,
+            transition: "box-shadow 180ms ease, transform 120ms",
+            borderColor,
+            background: bgColor,
+          }}
         >
           <div className="relative w-full h-full flex items-center justify-center">
             <span
@@ -242,10 +276,10 @@ const MessagePage: React.FC = () => {
               style={{
                 width: 28,
                 height: 28,
-                background: 'rgba(255, 255, 255, 0.87)',
-                filter: 'blur(20px)',
-                transform: pressed ? 'scale(1.18)' : 'scale(1)',
-                transition: 'transform 140ms ease, opacity 140ms ease',
+                background: "rgba(255, 255, 255, 0.87)",
+                filter: "blur(20px)",
+                transform: pressed ? "scale(1.18)" : "scale(1)",
+                transition: "transform 140ms ease, opacity 140ms ease",
                 zIndex: 0,
               }}
             />
@@ -256,13 +290,15 @@ const MessagePage: React.FC = () => {
               style={{
                 width: iconSize,
                 height: iconSize,
-                filter: 'brightness(1.25)',
-                transition: 'filter 140ms ease'
+                filter: "brightness(1.25)",
+                transition: "filter 140ms ease",
               }}
             />
           </div>
         </button>
-        <span className="text-[10px] text-center whitespace-nowrap mt-2 max-w-[88px] text-white">
+        <span
+          className={`text-[10px] text-center whitespace-nowrap mt-2 max-w-[88px] text-white`}
+        >
           {label}
         </span>
       </div>
@@ -270,7 +306,7 @@ const MessagePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-full w-screen bg-gradient-to-b relative overflow-hidden flex flex-col">
+    <div className="min-h-full w-full md:max-w-xl bg-gradient-to-b relative overflow-hidden flex flex-col">
       <div className="w-full relative h-32 flex-shrink-0">
         <img
           src="/images/Garland.svg"
@@ -299,10 +335,11 @@ const MessagePage: React.FC = () => {
         )}
 
         <div
-          className={`w-full rounded-2xl border-2 ${mode === "text"
+          className={`w-full rounded-2xl border-2 ${
+            mode === "text"
               ? "border-[#FF0F0F]"
               : "border-dashed border-[#FF0F0F]"
-            } bg-[#501F1F] p-4 mt-6`}
+          } bg-[#501F1F] p-4 mt-6`}
         >
           {mode === "text" ? (
             <textarea
@@ -319,12 +356,17 @@ const MessagePage: React.FC = () => {
                 alt="Upload Icon"
                 width={48}
                 height={48}
+                className="text-[#804040]"
               />
               <p className="text-xs text-[#804040] items-center text-center max-w-xs">
                 {videoFile ? (
-                  <span className="text-white font-medium">{videoFile.name}</span>
+                  <span className="text-white font-medium">
+                    {videoFile.name}
+                  </span>
                 ) : (
-                  <>MP4, MOV, or WebM • Up <br /> to 2 minutes</>
+                  <>
+                    MP4, MOV, or WebM • Up <br /> to 2 minutes
+                  </>
                 )}
               </p>
               <input
@@ -334,7 +376,7 @@ const MessagePage: React.FC = () => {
                 onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
               />
               <span className="bg-[#FF0F0F] text-white px-6 py-2 rounded-full text-sm">
-                {videoFile ? 'Change file' : 'Browse files'}
+                {videoFile ? "Change file" : "Browse files"}
               </span>
             </label>
           )}
@@ -404,6 +446,11 @@ const MessagePage: React.FC = () => {
         powered by Applift
       </footer>
 
+      {toast && <Toast message={toast.msg} type={toast.type} />}
+      <MagicLinkModal
+        open={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
       {toast && <Toast message={toast.msg} type={toast.type as any} />}
       {showAuthModal && (
         <MagicLinkModal

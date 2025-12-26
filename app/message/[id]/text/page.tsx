@@ -7,19 +7,19 @@ import PageTransition from "@/components/framer-motion/page-transition";
 import EnvelopeSequence from "@/components/framer-motion/envelope-reveal";
 import { openMessage } from "@/lib/api";
 
-const mockMessage = `Hey Dora
+// const mockMessage = `Hey Dora
 
-  This little digital note comes with a sprinkle of holiday magic just for you. 🌟
+//   This little digital note comes with a sprinkle of holiday magic just for you. 🌟
 
-May your Christmas be filled with laughter louder than the office printer, treats sweeter than our coffee breaks, and all the joy your heart can hold. 🎅❄️
+// May your Christmas be filled with laughter louder than the office printer, treats sweeter than our coffee breaks, and all the joy your heart can hold. 🎅❄️
 
-P.S. Working with you this year has been the best gift of all… just saying. 😉
+// P.S. Working with you this year has been the best gift of all… just saying. 😉
 
-Merry Christmas & Happy New Year!” 🎉💌`;
+// Merry Christmas & Happy New Year!” 🎉💌`;
 
 export default function ViewPage() {
-  const params = useParams() as { user_id?: string };
-  const slug = params?.user_id;
+  const params = useParams() as { id?: string };
+  const slug = params?.id;
 
   const [message, setMessage] = useState<string>(mockMessage);
   const [loading, setLoading] = useState(false);

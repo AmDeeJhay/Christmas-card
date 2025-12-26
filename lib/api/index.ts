@@ -1,9 +1,11 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 if (!BACKEND_URL) {
-  throw new Error('Missing NEXT_PUBLIC_BACKEND_URL environment variable. Set it in .env.local');
+  throw new Error(
+    "Missing NEXT_PUBLIC_BACKEND_URL environment variable. Set it in .env.local"
+  );
 }
 
 const api = axios.create({
@@ -17,16 +19,15 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    console.log("=== OUTGOING REQUEST ===");
-    console.log("Method:", config.method?.toUpperCase());
-    console.log("Full URL:", `${config.baseURL}${config.url}`);
-    console.log("Headers:", config.headers);
-    console.log("Data:", config.data);
-    console.log("========================");
+    console.log("API Request:", {
+      method: config.method,
+      url: config.url,
+      data: config.data,
+    });
     return config;
   },
-  (error) => {
-    console.error("❌ REQUEST INTERCEPTOR ERROR:", error);
+  (error: AxiosError) => {
+    console.error("Request Error:", error);
     return Promise.reject(error);
   }
 );
@@ -34,44 +35,15 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
-    console.log("=== SUCCESSFUL RESPONSE ===");
-    console.log("Status:", response.status);
-    console.log("Data:", response.data);
-    console.log("===========================");
+    console.log("API Response:", response.status, response.data);
     return response;
   },
-  (error) => {
-    console.error("=== ERROR RESPONSE ===");
-    console.error("Message:", error.message);
-    console.error("Code:", error.code);
-    console.error("Response Status:", error.response?.status);
-    console.error("Response Data:", error.response?.data);
-    console.error("Response Headers:", error.response?.headers);
-    console.error("Config URL:", error.config?.url);
-    console.error("Config BaseURL:", error.config?.baseURL);
-    console.error("Config Data:", error.config?.data);
-    console.error("Is Axios Error:", axios.isAxiosError(error));
-
-    // Log the full error object for 500 errors
-    if (error.response?.status === 500) {
-      console.error("🔴 500 INTERNAL SERVER ERROR");
-      console.error("Backend error details:", JSON.stringify(error.response?.data, null, 2));
-      console.error("This is a BACKEND error. Check your backend logs!");
-    }
-
-    if (error.code === 'ECONNABORTED') {
-      console.error("❌ Request timeout");
-    } else if (error.code === 'ERR_NETWORK') {
-      console.error("❌ Network error - possible causes:");
-      console.error("   1. Backend server is not running");
-      console.error("   2. Wrong BACKEND_URL");
-      console.error("   3. CORS not configured on backend");
-      console.error("   4. Backend URL has typo or wrong port");
-    } else if (!error.response) {
-      console.error("❌ No response received - backend might be down");
-    }
-    console.error("======================");
-
+  (error: AxiosError) => {
+    console.error("Response Error:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
     return Promise.reject(error);
   }
 );
@@ -91,6 +63,11 @@ export interface CreateMessageResponse {
 export interface CheckMessageExistsResponse {
   success: boolean;
   exists: boolean;
+}
+
+export interface ErrorResponse {
+  message?: string;
+  error?: string;
 }
 
 export interface CreateTextMessageData {
@@ -116,15 +93,17 @@ export interface CreateVideoMessageData {
 
 export interface MessageData {
   id: string;
+  slug: string;
+  recipient_first_name: string;
+  recipient_last_name: string;
   type: "text" | "video";
-  recipientFirstName: string;
-  recipientLastName: string;
-  text?: string;
-  message?: string; // Some backends use 'message' instead of 'text'
-  videoUrl?: string;
   theme: string;
-  senderId: string;
-  createdAt: string;
+  password: string; // hashed
+  password_hint: string;
+  video_url?: string;
+  sender_id: string;
+  created_at: string;
+  text?: string;
 }
 
 export interface ReplyData {
@@ -144,18 +123,24 @@ export const sendMagicLink = async (
   try {
     const response = await api.post("/auth/add-user", { email, name });
     return response.data;
-  } catch (error: any) {
-    console.error('sendMagicLink error:', error);
-    throw error;
+  } catch (error: unknown) {
+    console.error("sendMagicLink error:", error);
+    throw new Error(
+      (error as AxiosError<ErrorResponse>).response?.data?.message ||
+        "Failed to send magic link"
+    );
   }
 };
 
 export const verifyMagicLink = async (token: string): Promise<void> => {
   try {
     await api.get(`/auth/magic/${token}`);
-  } catch (error: any) {
-    console.error('verifyMagicLink error:', error);
-    throw error;
+  } catch (error: unknown) {
+    console.error("verifyMagicLink error:", error);
+    throw new Error(
+      (error as AxiosError<ErrorResponse>).response?.data?.message ||
+        "Failed to verify magic link"
+    );
   }
 };
 
@@ -179,8 +164,7 @@ export const createTextMessage = async (
     senderId: data.senderId,
   };
 
-  console.log('📤 Creating text message with payload:', payload);
-  console.log('📤 Payload as JSON:', JSON.stringify(payload, null, 2));
+  console.log("Creating text message with payload:", payload);
 
   while (attempt < maxAttempts) {
     try {
@@ -198,7 +182,7 @@ export const createTextMessage = async (
       const response = await api.post("/messages", payload, config);
       console.log('✅ Text message created successfully:', response.data);
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
       attempt++;
       console.error(`❌ Attempt ${attempt} failed:`, err.message);
 
@@ -216,10 +200,18 @@ export const createTextMessage = async (
         }
       }
 
-      const status = err?.response?.status;
-      const isRetryable = !err?.response || (status >= 500 && status < 600);
+      const status = (err as AxiosError)?.response?.status;
+      const isRetryable =
+        !(err as AxiosError)?.response ||
+        (status && status >= 500 && status < 600);
 
       if (attempt >= maxAttempts || !isRetryable) {
+        // Throw a more descriptive error
+        const errorMessage =
+          (err as AxiosError<ErrorResponse>)?.response?.data?.message ||
+          (err as AxiosError<ErrorResponse>)?.response?.data?.error ||
+          (err as AxiosError)?.message ||
+          "Failed to create message";
         const errorMessage = err?.response?.data?.message
           || err?.response?.data?.error
           || err?.message
@@ -233,7 +225,7 @@ export const createTextMessage = async (
     }
   }
 
-  throw new Error('Failed to create message after multiple attempts');
+  throw new Error("Failed to create message after multiple attempts");
 };
 
 export const createVideoMessage = async (
@@ -257,21 +249,19 @@ export const createVideoMessage = async (
 
   while (attempt < maxAttempts) {
     try {
-      const config: any = {
-        headers: {}
-      };
+      const config = token
+        ? {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              // Don't set Content-Type, let browser set it with boundary
+            },
+          }
+        : {};
 
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-
-      // Don't set Content-Type for FormData - browser will set it with boundary
-
-      console.log(`Attempt ${attempt + 1} of ${maxAttempts}`);
       const response = await api.post("/messages", formData, config);
       console.log('✅ Video message created successfully:', response.data);
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
       attempt++;
       console.error(`❌ Video upload attempt ${attempt} failed:`, err.message);
 
@@ -281,14 +271,17 @@ export const createVideoMessage = async (
         }
       }
 
-      const status = err?.response?.status;
-      const isRetryable = !err?.response || (status >= 500 && status < 600);
+      const status = (err as AxiosError)?.response?.status;
+      const isRetryable =
+        !(err as AxiosError)?.response ||
+        (status && status >= 500 && status < 600);
 
       if (attempt >= maxAttempts || !isRetryable) {
-        const errorMessage = err?.response?.data?.message
-          || err?.response?.data?.error
-          || err?.message
-          || 'Failed to create video message';
+        const errorMessage =
+          (err as AxiosError<ErrorResponse>)?.response?.data?.message ||
+          (err as AxiosError<ErrorResponse>)?.response?.data?.error ||
+          (err as AxiosError)?.message ||
+          "Failed to create video message";
         throw new Error(errorMessage);
       }
 
@@ -297,18 +290,30 @@ export const createVideoMessage = async (
     }
   }
 
-  throw new Error('Failed to create video message after multiple attempts');
+  throw new Error("Failed to create video message after multiple attempts");
 };
 
 export const checkMessageExists = async (
-  slug: string
+  slug: string,
+  firstName?: string,
+  lastName?: string
 ): Promise<CheckMessageExistsResponse> => {
   try {
-    const response = await api.get(`/messages/${slug}/exists`);
+    const params = new URLSearchParams();
+    if (firstName) params.append("firstName", firstName);
+    if (lastName) params.append("lastName", lastName);
+    const query = params.toString();
+    const url = query
+      ? `/messages/${slug}/exists?${query}`
+      : `/messages/${slug}/exists`;
+    const response = await api.get(url);
     return response.data;
-  } catch (error: any) {
-    console.error('checkMessageExists error:', error);
-    throw error;
+  } catch (error: unknown) {
+    console.error("checkMessageExists error:", error);
+    throw new Error(
+      (error as AxiosError<ErrorResponse>).response?.data?.message ||
+        "Failed to check message"
+    );
   }
 };
 
@@ -328,13 +333,22 @@ export const createMessageMagicLink = async (
   }
 };
 
-export const openMessageViaMagicLink = async (
+export const getMessageHint = async (
   slug: string,
-  magicToken: string
-): Promise<MessageData> => {
+  firstName: string,
+  lastName: string
+): Promise<{ success: boolean; hint: string }> => {
   try {
-    const response = await api.get(`/messages/${slug}/magic/${magicToken}`);
+    const response = await api.get(
+      `/messages/${slug}/hint?firstName=${firstName}&lastName=${lastName}`
+    );
     return response.data;
+  } catch (error: unknown) {
+    console.error("getMessageHint error:", error);
+    throw new Error(
+      (error as AxiosError<ErrorResponse>).response?.data?.message ||
+        "Failed to get hint"
+    );
   } catch (error: any) {
     console.error('openMessageViaMagicLink error:', error);
     throw error;
@@ -343,15 +357,17 @@ export const openMessageViaMagicLink = async (
 
 export const openMessage = async (slug: string): Promise<MessageData> => {
   try {
-    if (!slug || slug === "undefined") {
-      throw new Error("Message slug is missing");
-    }
-
-    const response = await api.get(`/messages/${slug}`);
-    return response.data?.data || response.data?.message || response.data;
-  } catch (error: any) {
-    console.error('❌ openMessage error:', error);
-    throw error;
+    const body = { firstName, lastName };
+    // if (password) body.password = password;
+    // no password for now
+    const response = await api.post(`/messages/${slug}/open`, body);
+    return response.data.data;
+  } catch (error: unknown) {
+    console.error("openMessage error:", error);
+    throw new Error(
+      (error as AxiosError<ErrorResponse>).response?.data?.message ||
+        "Failed to open message"
+    );
   }
 }
 
@@ -364,7 +380,11 @@ export const replyToMessage = async (
     const config = token
       ? { headers: { Authorization: `Bearer ${token}` } }
       : {};
-    const response = await api.post(`/messages/${slug}/reply`, replyData, config);
+    const response = await api.post(
+      `/messages/${slug}/reply`,
+      replyData,
+      config
+    );
     return response.data;
   } catch (error: any) {
     console.error('replyToMessage error:', error);

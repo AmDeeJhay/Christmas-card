@@ -54,10 +54,7 @@ export default function RootLayout({
         />
         <meta name="author" content="Applift" />
         <meta name="robots" content="index, follow" />
-        <link
-          rel="canonical"
-          href={`${DOMAIN}`}
-        />{" "}
+        <link rel="canonical" href={`${DOMAIN}`} />{" "}
         {/* Set via NEXT_PUBLIC_DOMAIN env var */}
         {/* Open Graph Tags for Social Media Sharing */}
         <meta
@@ -69,15 +66,9 @@ export default function RootLayout({
           content="Create and share heartfelt Christmas video cards filled with joy and love. Send personalized holiday messages to your loved ones."
         />
         <meta property="og:type" content="website" />
-        <meta
-          property="og:url"
-          content={`${DOMAIN}`}
-        />{" "}
+        <meta property="og:url" content={`${DOMAIN}`} />{" "}
         {/* Set via NEXT_PUBLIC_DOMAIN env var */}
-        <meta
-          property="og:image"
-          content={`${DOMAIN}/og-image.png`}
-        />{" "}
+        <meta property="og:image" content={`${DOMAIN}/og-image.png`} />{" "}
         {/* Full URL for better sharing */}
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -100,10 +91,7 @@ export default function RootLayout({
           name="twitter:description"
           content="Create and share heartfelt Christmas video cards filled with joy and love."
         />
-        <meta
-          name="twitter:image"
-          content={`${DOMAIN}/og-image.png`}
-        />
+        <meta name="twitter:image" content={`${DOMAIN}/og-image.png`} />
         {/* Favicon and Icons */}
         <link
           rel="apple-touch-icon"
@@ -159,7 +147,7 @@ export default function RootLayout({
           }}
         />
       </Head>
-      <body className="bg-linear-to-b from-slate-900 via-slate-700 to-slate-900 text-slate-100 min-h-screen">
+      <body className="bg-[#220000] text-slate-100 min-h-screen">
         <div className="app">{children}</div>
       </body>
     </html>
