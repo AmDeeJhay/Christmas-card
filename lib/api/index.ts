@@ -127,7 +127,7 @@ export const sendMagicLink = async (
     console.error("sendMagicLink error:", error);
     throw new Error(
       (error as AxiosError<ErrorResponse>).response?.data?.message ||
-        "Failed to send magic link"
+      "Failed to send magic link"
     );
   }
 };
@@ -139,7 +139,7 @@ export const verifyMagicLink = async (token: string): Promise<void> => {
     console.error("verifyMagicLink error:", error);
     throw new Error(
       (error as AxiosError<ErrorResponse>).response?.data?.message ||
-        "Failed to verify magic link"
+      "Failed to verify magic link"
     );
   }
 };
@@ -184,38 +184,28 @@ export const createTextMessage = async (
       return response.data;
     } catch (err: unknown) {
       attempt++;
-      console.error(`❌ Attempt ${attempt} failed:`, err.message);
+      const anyErr = err as any;
+      console.error(`❌ Attempt ${attempt} failed:`, anyErr?.message || anyErr);
 
       // Check if it's a network error
-      if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
-        console.error("🔴 NETWORK ERROR DETECTED");
-        console.error("This usually means:");
-        console.error("1. Backend is not running at:", BACKEND_URL);
-        console.error("2. CORS is blocking the request");
-        console.error("3. Wrong URL/port in BACKEND_URL");
-
-        // Don't retry network errors immediately - they won't help
+      if (anyErr?.code === "ERR_NETWORK" || anyErr?.message === "Network Error") {
         if (attempt >= maxAttempts) {
-          throw new Error(`Cannot connect to server at ${BACKEND_URL}. Please check if the backend is running.`);
+          throw new Error(
+            `Cannot connect to server at ${BACKEND_URL}. Please check if the backend is running.`
+          );
         }
       }
 
       const status = (err as AxiosError)?.response?.status;
       const isRetryable =
-        !(err as AxiosError)?.response ||
-        (status && status >= 500 && status < 600);
+        !(err as AxiosError)?.response || (status && status >= 500 && status < 600);
 
       if (attempt >= maxAttempts || !isRetryable) {
-        // Throw a more descriptive error
         const errorMessage =
           (err as AxiosError<ErrorResponse>)?.response?.data?.message ||
           (err as AxiosError<ErrorResponse>)?.response?.data?.error ||
-          (err as AxiosError)?.message ||
+          anyErr?.message ||
           "Failed to create message";
-        const errorMessage = err?.response?.data?.message
-          || err?.response?.data?.error
-          || err?.message
-          || 'Failed to create message';
         throw new Error(errorMessage);
       }
 
@@ -251,11 +241,11 @@ export const createVideoMessage = async (
     try {
       const config = token
         ? {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              // Don't set Content-Type, let browser set it with boundary
-            },
-          }
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // Don't set Content-Type, let browser set it with boundary
+          },
+        }
         : {};
 
       const response = await api.post("/messages", formData, config);
@@ -263,24 +253,29 @@ export const createVideoMessage = async (
       return response.data;
     } catch (err: unknown) {
       attempt++;
-      console.error(`❌ Video upload attempt ${attempt} failed:`, err.message);
+      const anyErr = err as any;
+      console.error(
+        `❌ Video upload attempt ${attempt} failed:`,
+        anyErr?.message || anyErr
+      );
 
-      if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
+      if (anyErr?.code === "ERR_NETWORK" || anyErr?.message === "Network Error") {
         if (attempt >= maxAttempts) {
-          throw new Error(`Cannot connect to server at ${BACKEND_URL}. Please check if the backend is running.`);
+          throw new Error(
+            `Cannot connect to server at ${BACKEND_URL}. Please check if the backend is running.`
+          );
         }
       }
 
       const status = (err as AxiosError)?.response?.status;
       const isRetryable =
-        !(err as AxiosError)?.response ||
-        (status && status >= 500 && status < 600);
+        !(err as AxiosError)?.response || (status && status >= 500 && status < 600);
 
       if (attempt >= maxAttempts || !isRetryable) {
         const errorMessage =
           (err as AxiosError<ErrorResponse>)?.response?.data?.message ||
           (err as AxiosError<ErrorResponse>)?.response?.data?.error ||
-          (err as AxiosError)?.message ||
+          anyErr?.message ||
           "Failed to create video message";
         throw new Error(errorMessage);
       }
@@ -312,7 +307,7 @@ export const checkMessageExists = async (
     console.error("checkMessageExists error:", error);
     throw new Error(
       (error as AxiosError<ErrorResponse>).response?.data?.message ||
-        "Failed to check message"
+      "Failed to check message"
     );
   }
 };
@@ -340,33 +335,34 @@ export const getMessageHint = async (
 ): Promise<{ success: boolean; hint: string }> => {
   try {
     const response = await api.get(
-      `/messages/${slug}/hint?firstName=${firstName}&lastName=${lastName}`
+      `/messages/${encodeURIComponent(slug)}/hint?firstName=${encodeURIComponent(
+        firstName
+      )}&lastName=${encodeURIComponent(lastName)}`
     );
     return response.data;
   } catch (error: unknown) {
     console.error("getMessageHint error:", error);
     throw new Error(
-      (error as AxiosError<ErrorResponse>).response?.data?.message ||
-        "Failed to get hint"
+      (error as AxiosError<ErrorResponse>)?.response?.data?.message ||
+      "Failed to get hint"
     );
-  } catch (error: any) {
-    console.error('openMessageViaMagicLink error:', error);
-    throw error;
   }
 };
 
 export const openMessage = async (slug: string): Promise<MessageData> => {
   try {
-    const body = { firstName, lastName };
-    // if (password) body.password = password;
-    // no password for now
-    const response = await api.post(`/messages/${slug}/open`, body);
-    return response.data.data;
+    if (!slug || slug === "undefined") {
+      throw new Error("Message slug is missing");
+    }
+
+    // Use the simple GET endpoint to fetch message data
+    const response = await api.get(`/messages/${encodeURIComponent(slug)}`);
+    return response.data?.data || response.data?.message || response.data;
   } catch (error: unknown) {
     console.error("openMessage error:", error);
     throw new Error(
       (error as AxiosError<ErrorResponse>).response?.data?.message ||
-        "Failed to open message"
+      "Failed to open message"
     );
   }
 }

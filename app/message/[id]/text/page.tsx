@@ -21,7 +21,7 @@ export default function ViewPage() {
   const params = useParams() as { id?: string };
   const slug = params?.id;
 
-  const [message, setMessage] = useState<string>(mockMessage);
+  const [message, setMessage] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function ViewPage() {
       const stored = localStorage.getItem(`message:${slug}`);
       if (stored) {
         const data = JSON.parse(stored);
-        setMessage(data.text || data.message || mockMessage);
+        setMessage(data.text || data.message || '');
         return;
       }
     } catch (e) {
@@ -49,7 +49,7 @@ export default function ViewPage() {
           localStorage.setItem(`message:${slug}`, JSON.stringify(data));
         } catch (e) { }
         if (!mounted) return;
-        setMessage(data?.text || (data as any)?.message || mockMessage);
+        setMessage(data?.text || (data as any)?.message || '');
       } catch (e) {
         if (!mounted) return;
         setMessage('Message not found');

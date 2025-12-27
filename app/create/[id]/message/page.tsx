@@ -28,7 +28,6 @@ const MessagePage: React.FC = () => {
   const [toast, setToast] = useState<{ msg: string; type?: ToastType } | null>(
     null
   );
-  const [toast, setToast] = useState<{ msg: string; type?: string } | null>(null);
 
   // Load stored data from previous steps
   const [recipientData, setRecipientData] = useState<{
@@ -101,8 +100,7 @@ const MessagePage: React.FC = () => {
     try {
       // Get or create senderId using UUID
       let senderId = localStorage.getItem("userId");
-      if (!senderId) {
-        // Generate UUID v4
+      if (!senderId && typeof crypto !== "undefined" && "randomUUID" in crypto) {
         senderId = crypto.randomUUID();
         localStorage.setItem("userId", senderId);
         console.log("Created new senderId:", senderId);
@@ -116,7 +114,7 @@ const MessagePage: React.FC = () => {
           recipientLastName: recipientData.lastName,
           text: message,
           theme,
-          senderId: senderId,
+          senderId: senderId || "",
           password: "",
           passwordHint: "",
           hint: "",
@@ -125,14 +123,6 @@ const MessagePage: React.FC = () => {
         console.log("Submitting text message:", data);
         res = await createTextMessage(data);
         console.log("Text message created:", res);
-
-        if (res?.slug) {
-          try {
-            sessionStorage.setItem("cardSlug", res.slug);
-          } catch {}
-          // Navigate to overview where the shareable link is shown
-          router.push("/create/overview");
-        }
       } else {
         if (!videoFile) {
           setToast({ msg: "No video file selected", type: "error" });
@@ -145,7 +135,7 @@ const MessagePage: React.FC = () => {
           recipientLastName: recipientData.lastName,
           theme,
           file: videoFile,
-          senderId: senderId,
+          senderId: senderId || "",
           password: "",
           passwordHint: "",
         };
@@ -155,26 +145,28 @@ const MessagePage: React.FC = () => {
         console.log("Video message created:", res);
       }
 
-        if (res?.slug) {
-          try {
-            sessionStorage.setItem("cardSlug", res.slug);
-          } catch {}
-          router.push("/create/overview");
-        }
-        // Navigate to overview where the shareable link is shown
+      if (res?.slug) {
+        try {
+          sessionStorage.setItem("cardSlug", res.slug);
+        } catch { }
         router.push("/create/overview");
       } else {
         throw new Error("No slug returned from server");
       }
     } catch (err: unknown) {
       console.error("Create message failed", err);
-      console.error("Full error object:", JSON.stringify(err, null, 2));
-      console.error("Response data:", err?.response?.data);
+      try {
+        console.error("Full error object:", JSON.stringify(err, null, 2));
+      } catch { }
 
       const status = (err as AxiosError)?.response?.status;
       const isNetworkError =
         (err as AxiosError)?.message === "Network Error" ||
         !(err as AxiosError)?.response;
+
+      const backendErrorMessage =
+        (err as AxiosError<ErrorResponse>)?.response?.data?.message ||
+        (err as AxiosError<ErrorResponse>)?.response?.data?.error;
 
       if (status === 401) {
         setShowAuthModal(true);
@@ -190,13 +182,13 @@ const MessagePage: React.FC = () => {
       } else if (status === 400) {
         setToast({
           msg:
-            (err as AxiosError<ErrorResponse>)?.response?.data?.message ||
+            backendErrorMessage ||
             "Invalid data. Please check all fields.",
           type: "error",
         });
       } else {
-        const errorMsg = backendErrorMessage || err?.message || 'Something went wrong. Please try again.';
-        setToast({ msg: errorMsg, type: 'error' });
+        const errorMsg = backendErrorMessage || (err as any)?.message || "Something went wrong. Please try again.";
+        setToast({ msg: errorMsg, type: "error" });
       }
 
       setSubmitting(false);
@@ -219,7 +211,6 @@ const MessagePage: React.FC = () => {
     iconSize?: number;
   }) => {
     const [pressed, setPressed] = React.useState(false);
-    const [pressed, setPressed] = React.useState(false);
 
     const baseInset = active
       ? "inset 0 8px 18px rgba(0,0,0,0.6)"
@@ -235,8 +226,8 @@ const MessagePage: React.FC = () => {
     const key = label.toLowerCase().includes("crimson")
       ? "crimson"
       : label.toLowerCase().includes("evergreen")
-      ? "evergreen"
-      : "midnight";
+        ? "evergreen"
+        : "midnight";
 
     const borderByKey: Record<string, string> = {
       crimson: "#C40909",
@@ -335,11 +326,10 @@ const MessagePage: React.FC = () => {
         )}
 
         <div
-          className={`w-full rounded-2xl border-2 ${
-            mode === "text"
+          className={`w-full rounded-2xl border-2 ${mode === "text"
               ? "border-[#FF0F0F]"
               : "border-dashed border-[#FF0F0F]"
-          } bg-[#501F1F] p-4 mt-6`}
+            } bg-[#501F1F] p-4 mt-6`}
         >
           {mode === "text" ? (
             <textarea
@@ -387,8 +377,8 @@ const MessagePage: React.FC = () => {
             onClick={() => setMode("text")}
             type="button"
             className={`flex-1 py-2 rounded-full text-sm transition ${mode === "text"
-                ? "bg-red-700 text-white"
-                : "text-red-300"
+              ? "bg-red-700 text-white"
+              : "text-red-300"
               }`}
           >
             Text
@@ -397,8 +387,8 @@ const MessagePage: React.FC = () => {
             onClick={() => setMode("video")}
             type="button"
             className={`flex-1 py-2 rounded-full text-sm transition ${mode === "video"
-                ? "bg-red-700 text-white"
-                : "text-red-300"
+              ? "bg-red-700 text-white"
+              : "text-red-300"
               }`}
           >
             Video
@@ -434,8 +424,8 @@ const MessagePage: React.FC = () => {
           disabled={!isValid || submitting || !recipientData}
           type="button"
           className={`w-full rounded-full py-4 mt-8 font-medium shadow-lg transition ${isValid && !submitting && recipientData
-              ? 'bg-white text-gray-900 active:scale-95 hover:shadow-xl'
-              : 'bg-white/30 text-gray-400 cursor-not-allowed'
+            ? 'bg-white text-gray-900 active:scale-95 hover:shadow-xl'
+            : 'bg-white/30 text-gray-400 cursor-not-allowed'
             }`}
         >
           {submitting ? "Submitting…" : "Submit"}
@@ -447,11 +437,6 @@ const MessagePage: React.FC = () => {
       </footer>
 
       {toast && <Toast message={toast.msg} type={toast.type} />}
-      <MagicLinkModal
-        open={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-      />
-      {toast && <Toast message={toast.msg} type={toast.type as any} />}
       {showAuthModal && (
         <MagicLinkModal
           open={showAuthModal}
