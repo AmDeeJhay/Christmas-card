@@ -46,9 +46,9 @@ export default function Page() {
       <PageTransition>
         <div className="relative h-full flex flex-col items-center justify-start overflow-hidden">
           {/* Background snow pattern */}
-          <div className="absolute inset-0 z-10 ">
+          <div className="absolute inset-0 z-20 ">
             <Image
-              src="/images/snow flakes-bg.png"
+              src="/images/snow-flakes.svg"
               alt="snow background"
               fill
               objectFit="cover"
@@ -94,7 +94,7 @@ export default function Page() {
         {/* Background snow pattern */}
         <div className="absolute inset-0 z-10 ">
           <Image
-            src="/images/snow flakes-bg.png"
+            src="/images/snow-flakes.svg"
             alt="snow background"
             fill
             objectFit="cover"

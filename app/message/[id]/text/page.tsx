@@ -27,12 +27,17 @@ export default function ViewPage() {
   useEffect(() => {
     if (!slug) return;
 
-    // Try to load from localStorage first
+    // Try to load from localStorage first (normalize several possible shapes)
     try {
       const stored = localStorage.getItem(`message:${slug}`);
       if (stored) {
         const data = JSON.parse(stored);
-        setMessage(data.text || data.message || '');
+        const text =
+          data?.text ||
+          (typeof data?.message === "string" ? data.message : data?.message?.text) ||
+          (data?.data?.text) ||
+          (typeof data === "string" ? data : "");
+        setMessage(text || "");
         return;
       }
     } catch (e) {
@@ -44,12 +49,19 @@ export default function ViewPage() {
       setLoading(true);
       try {
         const data = await openMessage(slug);
-        console.log('openMessage fetched for', slug, data);
+        console.log("openMessage fetched for", slug, data);
         try {
           localStorage.setItem(`message:${slug}`, JSON.stringify(data));
-        } catch (e) { }
+        } catch (e) {}
         if (!mounted) return;
-        setMessage(data?.text || (data as any)?.message || '');
+        const text =
+          data?.text ||
+          (typeof (data as any)?.message === "string"
+            ? (data as any).message
+            : (data as any)?.message?.text) ||
+          (data as any)?.data?.text ||
+          "";
+        setMessage(text);
       } catch (e) {
         if (!mounted) return;
         setMessage('Message not found');
@@ -66,9 +78,9 @@ export default function ViewPage() {
     <PageTransition>
       <div className="relative h-full flex flex-col items-center justify-start overflow-hidden">
         {/* Background snow pattern */}
-        <div className="absolute inset-0 z-10 ">
+        <div className="absolute inset-0 z-20 ">
           <Image
-            src="/images/snow flakes-bg.png"
+            src="/images/snow-flakes.svg"
             alt="snow background"
             fill
             objectFit="cover"
