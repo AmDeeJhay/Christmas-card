@@ -52,7 +52,7 @@ export default function ViewPage() {
         console.log("openMessage fetched for", slug, data);
         try {
           localStorage.setItem(`message:${slug}`, JSON.stringify(data));
-        } catch (e) {}
+        } catch (e) { }
         if (!mounted) return;
         const text =
           data?.text ||
