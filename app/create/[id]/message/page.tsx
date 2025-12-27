@@ -307,24 +307,6 @@ const MessagePage: React.FC = () => {
       </div>
 
       <div className="flex-1 flex flex-col items-center px-6 z-10">
-        {/* Show recipient info if loaded */}
-        {recipientData && (
-          <div className="w-full bg-green-900/30 border border-green-600 rounded-lg px-4 py-2 mt-4">
-            <p className="text-green-400 text-xs">
-              To: {recipientData.firstName} {recipientData.lastName}
-            </p>
-          </div>
-        )}
-
-        {/* Warning if no recipient data */}
-        {!recipientData && (
-          <div className="w-full bg-yellow-900/30 border border-yellow-600 rounded-lg px-4 py-2 mt-4">
-            <p className="text-yellow-400 text-xs">
-              ⚠️ No recipient data found. Please go back and fill in recipient information.
-            </p>
-          </div>
-        )}
-
         <div
           className={`w-full rounded-2xl border-2 ${mode === "text"
               ? "border-[#FF0F0F]"
