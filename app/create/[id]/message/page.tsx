@@ -297,6 +297,7 @@ const MessagePage: React.FC = () => {
   };
 
   return (
+
     <div className="min-h-full w-full md:max-w-xl bg-gradient-to-b relative overflow-hidden flex flex-col">
       <div className="w-full relative h-32 flex-shrink-0">
         <img
@@ -424,8 +425,7 @@ const MessagePage: React.FC = () => {
             isValid && !submitting && recipientData
               ? "bg-white text-gray-900 active:scale-95"
               : "bg-white/30 text-gray-400 cursor-not-allowed"
-          }`}
-        >
+          }`}>
           {submitting ? "Submitting…" : "Submit"}
         </button>
       </div>
@@ -439,7 +439,8 @@ const MessagePage: React.FC = () => {
         open={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
-    </div>
+   
+  </div>
   );
 };
 
