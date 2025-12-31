@@ -297,6 +297,7 @@ const MessagePage: React.FC = () => {
   };
 
   return (
+
     <div className="min-h-full w-full md:max-w-xl bg-gradient-to-b relative overflow-hidden flex flex-col">
       <div className="w-full relative h-32 flex-shrink-0">
         <img
@@ -404,12 +405,12 @@ const MessagePage: React.FC = () => {
         <button
           onClick={handleSubmit}
           disabled={!isValid || submitting || !recipientData}
-          type="button"
-          className={`w-full rounded-full py-4 mt-8 font-medium shadow-lg transition ${isValid && !submitting && recipientData
-            ? 'bg-white text-gray-900 active:scale-95 hover:shadow-xl'
-            : 'bg-white/30 text-gray-400 cursor-not-allowed'
-            }`}
-        >
+          aria-disabled={!isValid || submitting || !recipientData}
+          className={`w-full rounded-full py-4 mt-8 font-medium shadow-lg transition ${
+            isValid && !submitting && recipientData
+              ? "bg-white text-gray-900 active:scale-95"
+              : "bg-white/30 text-gray-400 cursor-not-allowed"
+          }`}>
           {submitting ? "Submitting…" : "Submit"}
         </button>
       </div>
@@ -419,13 +420,12 @@ const MessagePage: React.FC = () => {
       </footer>
 
       {toast && <Toast message={toast.msg} type={toast.type} />}
-      {showAuthModal && (
-        <MagicLinkModal
-          open={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-        />
-      )}
-    </div>
+      <MagicLinkModal
+        open={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
+   
+  </div>
   );
 };
 
